@@ -27,7 +27,7 @@ namespace FormeleMethodenPracticum
             outputTextBox.Text += output;
         }
 
-        public static void Clear()
+        public static void ClearOutput()
         {
             outputTextBox.Clear();
         }
