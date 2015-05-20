@@ -72,6 +72,12 @@ namespace FormeleMethodenPracticum
                 case "NDFA":
                     FiniteAutomaton.CreateNew(true);
                     break;
+                case "Grammar":
+                    List<string> symbols = new List<string>();
+                    List<string> alphabet = new List<string>();
+                    List<ProductLine> productLines = new List<ProductLine>(); 
+                    RegularGrammar gram = new RegularGrammar(symbols, alphabet, productLines, "s");
+                    break;
             }
         }
     }
