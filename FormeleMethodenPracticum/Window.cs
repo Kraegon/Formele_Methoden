@@ -59,9 +59,20 @@ namespace FormeleMethodenPracticum
             inputTextBox.Clear();
         }
 
-        private void processInput()
+        private void processInput() //TODO: Make usefull.
         { 
-            //TODO: Make usefull.
+            string[] parts = inputTextBox.Text.Split(' ');
+
+            //Garanteed to be atleast one non space character by the trigger.
+            switch (parts[0].ToUpper())
+            {
+                case "DFA":
+                    FiniteAutomaton.CreateNew(false);
+                    break;
+                case "NDFA":
+                    FiniteAutomaton.CreateNew(true);
+                    break;
+            }
         }
     }
 }
