@@ -59,9 +59,26 @@ namespace FormeleMethodenPracticum
             inputTextBox.Clear();
         }
 
-        private void processInput()
+        private void processInput() //TODO: Make usefull.
         { 
-            //TODO: Make usefull.
+            string[] parts = inputTextBox.Text.Split(' ');
+
+            //Garanteed to be atleast one non space character by the trigger.
+            switch (parts[0].ToUpper())
+            {
+                case "DFA":
+                    FiniteAutomaton.CreateNew(false);
+                    break;
+                case "NDFA":
+                    FiniteAutomaton.CreateNew(true);
+                    break;
+                case "Grammar":
+                    List<string> symbols = new List<string>();
+                    List<string> alphabet = new List<string>();
+                    List<ProductLine> productLines = new List<ProductLine>(); 
+                    RegularGrammar gram = new RegularGrammar(symbols, alphabet, productLines, "s");
+                    break;
+            }
         }
     }
 }

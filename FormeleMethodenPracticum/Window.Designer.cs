@@ -68,6 +68,7 @@
         private static System.Windows.Forms.RichTextBox outputTextBox;
         private static System.Windows.Forms.RichTextBox inputTextBox;
 
+
     }
 }
 

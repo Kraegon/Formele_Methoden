@@ -21,6 +21,16 @@ namespace FormeleMethodenPracticum
             startSymbol = S;
         }
 
+        public void changeToNDFA()
+        {
+            
+        }
+
+        public void changeToRegularExpression()
+        {
+
+        }
+
         public string toString()
         {
             string description = "";
