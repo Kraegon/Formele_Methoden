@@ -48,18 +48,18 @@ namespace FormeleMethodenPracticum
             //Remove enter.
             inputTextBox.Text = inputTextBox.Text.Remove(inputTextBox.Text.Length - 1, 1);
 
-            //Process input.
-            processInput();
-
             //Input to Output with '>'.
             Write("> ");
             WriteLine(inputTextBox.Text);
+
+            //Process input.
+            processInput();
 
             //Clear Input.
             inputTextBox.Clear();
         }
 
-        private void processInput() //TODO: Make usefull.
+        private void processInput() //TODO: Make usefull, add command pattern
         { 
             string[] parts = inputTextBox.Text.Split(' ');
 
@@ -77,6 +77,13 @@ namespace FormeleMethodenPracticum
                     List<string> alphabet = new List<string>();
                     List<ProductLine> productLines = new List<ProductLine>(); 
                     RegularGrammar gram = new RegularGrammar(symbols, alphabet, productLines, "s");
+                    break;
+                case "REGEX":
+                    WriteLine("Ik ben de regex");
+                    WriteLine("Vrees mij");
+                    break;
+                case "EXIT":
+                    Program.Terminate();
                     break;
             }
         }

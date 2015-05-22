@@ -18,5 +18,10 @@ namespace FormeleMethodenPracticum
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new Window());
         }
+
+        public static void Terminate()
+        {
+            Application.Exit();
+        }
     }
 }
