@@ -68,7 +68,7 @@ namespace FormeleMethodenPracticum
             inputTextBox.Clear();
         }
 
-        private void processInput() //TODO: Make usefull.
+        private void processInput() //TODO: Make usefull, add command pattern
         {
             if (grammar == true)
             {
@@ -207,6 +207,13 @@ namespace FormeleMethodenPracticum
                         grammar = false;
                         WriteLine("Grammar filled");
                     }
+                    break;
+                case "REGEX":
+                    WriteLine("Ik ben de regex");
+                    WriteLine("Vrees mij");
+                    break;
+                case "EXIT":
+                    Program.Terminate();
                     break;
             }
             
