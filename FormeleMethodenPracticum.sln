@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.21005.1
+VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FormeleMethodenPracticum", "FormeleMethodenPracticum\FormeleMethodenPracticum.csproj", "{6F0F82E6-6005-4553-A9E1-0B5FC6BBEE34}"
 EndProject

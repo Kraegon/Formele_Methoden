@@ -15,6 +15,7 @@ namespace FormeleMethodenPracticum
         public Window()
         {
             InitializeComponent();
+            Commands.Create();
         }
 
         public static void WriteLine(string outputLine)
@@ -59,33 +60,125 @@ namespace FormeleMethodenPracticum
             inputTextBox.Clear();
         }
 
-        private void processInput() //TODO: Make usefull, add command pattern
-        { 
+        private void processInput()
+        {
             string[] parts = inputTextBox.Text.Split(' ');
 
             //Garanteed to be atleast one non space character by the trigger.
-            switch (parts[0].ToUpper())
-            {
-                case "DFA":
-                    FiniteAutomaton.CreateNew(false);
-                    break;
-                case "NDFA":
-                    FiniteAutomaton.CreateNew(true);
-                    break;
-                case "Grammar":
-                    List<string> symbols = new List<string>();
-                    List<string> alphabet = new List<string>();
-                    List<ProductLine> productLines = new List<ProductLine>(); 
-                    RegularGrammar gram = new RegularGrammar(symbols, alphabet, productLines, "s");
-                    break;
-                case "REGEX":
-                    WriteLine("Ik ben de regex");
-                    WriteLine("Vrees mij");
-                    break;
-                case "EXIT":
-                    Program.Terminate();
-                    break;
-            }
+            Command inputCommand = Commands.FindCommand(parts[0].ToUpper());
+            if(inputCommand != null)
+                inputCommand.Execute();
         }
-    }
-}
+
+        /// List of commands.
+        /// To add a new command do the following:
+        /// 1) Create a new static Command (with a name, description and command)
+        /// 2) Add the new command to the create list
+        private static class Commands
+        {
+            private static List<Command> CommandsList = new List<Command>();
+
+            /// Get all names of commands.
+            public static string[] CommandNames()
+            {
+                string[] str = new String[CommandsList.Count];
+                for (int i = 0; i < str.Length; i++)
+                {
+                    str[i] = CommandsList[i].Name;
+                }
+                return str;
+            }
+
+            /// Look for a certain command by name
+            public static Command FindCommand(String commandName)
+            {
+                Command result = null;
+                foreach (Command c in Commands.CommandsList)
+                {
+                    if (c.Name.ToUpper() == commandName)
+                    {
+                        result = c;
+                    }
+                }
+                return result;
+            }
+
+            public static void Create()
+            {
+                #region Add commands
+                CommandsList.Add(DFA);
+                CommandsList.Add(NDFA);
+                CommandsList.Add(Grammar);
+                CommandsList.Add(Regex);
+                CommandsList.Add(Exit);
+                #endregion
+            }
+
+            private static Command
+            #region Commands
+                DFA = new Command("DFA",
+                     "Play with DFAs.",
+                     delegate()
+                     {
+                         FiniteAutomaton.CreateNew(false);
+                     }),
+                NDFA = new Command("NDFA",
+                        "Play with NDFAs.",
+                        delegate()
+                        {
+                            FiniteAutomaton.CreateNew(true);
+                        }),
+                Grammar = new Command("Grammar",
+                        "Play with formal grammar.",
+                        delegate()
+                        {
+                            List<string> symbols = new List<string>();
+                            List<string> alphabet = new List<string>();
+                            List<ProductLine> productLines = new List<ProductLine>();
+                            RegularGrammar gram = new RegularGrammar(symbols, alphabet, productLines, "s");
+                        }),
+                Regex = new Command("Regex",
+                        "Play with regular expressions.",
+                        delegate()
+                        {
+                            WriteLine("Ik ben de regex");
+                            WriteLine("Vrees mij");
+                        }),
+                Exit = new Command("Exit",
+                       "Quit the program.",
+                       delegate()
+                       {
+                           Program.Terminate();
+                       });
+            #endregion
+        }
+        /// <summary>
+        /// Command object containing its name, description and whether it requires parameters or not.
+        /// </summary>
+        private class Command
+        {
+            public string Name;
+            public string Description;
+            public Behaviour command;
+
+            public delegate void Behaviour();
+            
+            public Command(string Name, string Description, Behaviour Command)
+            {
+                this.Name = Name;
+                this.Description = Description;
+                this.command = Command; //Hold command
+            }
+
+            public void Execute()
+            {
+                command(); //Do held back command
+            }
+
+            public override string ToString()
+            {
+                return "-> " + Name + " \n" + "'" + Description + "'";
+            }
+        } //End Command
+    } //End Window
+}//End namespace

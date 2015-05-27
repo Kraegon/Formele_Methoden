@@ -19,7 +19,7 @@ namespace FormeleMethodenPracticum.model
      */
     static class Regex
     {
-        private static const char[] validCharacters = {'$', '|','*','+','{','}','(',')'}; //And normal letters/numerals for language
+        //private static const char[] validCharacters = {'$', '|','*','+','{','}','(',')'}; //And normal letters/numerals for language
 
         /**
          * Automata/stack should fix this nicely. 
