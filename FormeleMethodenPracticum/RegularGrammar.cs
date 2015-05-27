@@ -11,7 +11,11 @@ namespace FormeleMethodenPracticum
         private List<string> alphabet;
         private List<string> symbols;
         private string startSymbol;
-        private List<ProductLine> productionLines;
+        private List<ProductLine> productionLines = new List<ProductLine>();
+
+        public RegularGrammar()
+        {
+        }
 
         public RegularGrammar(List<string> N, List<string> E, List<ProductLine> P, string S)
         {
@@ -19,6 +23,36 @@ namespace FormeleMethodenPracticum
             alphabet = E;
             productionLines = P;
             startSymbol = S;
+        }
+
+        public void fillAlphabet(List<string> E)
+        {
+            alphabet = E;
+        }
+
+        public void fillSymbols(List<string> N)
+        {
+            symbols = N;
+        }
+
+        public void addProductionLine(ProductLine P)
+        {
+            productionLines.Add(P);
+        }
+
+        public void fillStartSymbol(string S)
+        {
+            startSymbol = S;
+        }
+
+        public bool containsSymbol(string Sym)
+        {
+            return symbols.Contains(Sym);
+        }
+
+        public bool containsLetter(string Let)
+        {
+            return alphabet.Contains(Let);
         }
 
         public void changeToNDFA()
@@ -33,6 +67,9 @@ namespace FormeleMethodenPracticum
 
         public string toString()
         {
+            if (alphabet.Count == 0 || symbols.Count == 0 || productionLines.Count == 0)
+                return "Not all the variables of the grammar are filled.";
+            
             string description = "";
 
             //Symbols
