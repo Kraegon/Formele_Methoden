@@ -28,18 +28,9 @@
         /// </summary>
         private void InitializeComponent()
         {
-            outputTextBox = new System.Windows.Forms.RichTextBox();
             inputTextBox = new System.Windows.Forms.RichTextBox();
+            outputTextBox = new System.Windows.Forms.RichTextBox();
             this.SuspendLayout();
-            // 
-            // outputTextBox
-            // 
-            outputTextBox.Enabled = false;
-            outputTextBox.Location = new System.Drawing.Point(13, 13);
-            outputTextBox.Name = "outputTextBox";
-            outputTextBox.Size = new System.Drawing.Size(259, 193);
-            outputTextBox.TabIndex = 0;
-            outputTextBox.Text = "";
             // 
             // inputTextBox
             // 
@@ -48,7 +39,17 @@
             inputTextBox.Size = new System.Drawing.Size(259, 37);
             inputTextBox.TabIndex = 1;
             inputTextBox.Text = "";
-            inputTextBox.KeyUp += new System.Windows.Forms.KeyEventHandler(this.inputTextBox_KeyUp);
+            inputTextBox.KeyUp += new System.Windows.Forms.KeyEventHandler(inputTextBox_KeyUp);
+            // 
+            // outputTextBox
+            // 
+            outputTextBox.Cursor = System.Windows.Forms.Cursors.IBeam;
+            outputTextBox.Location = new System.Drawing.Point(13, 13);
+            outputTextBox.Name = "outputTextBox";
+            outputTextBox.ReadOnly = true;
+            outputTextBox.Size = new System.Drawing.Size(259, 193);
+            outputTextBox.TabIndex = 0;
+            outputTextBox.Text = "";
             // 
             // Window
             // 
@@ -65,8 +66,9 @@
 
         #endregion
 
-        private static System.Windows.Forms.RichTextBox outputTextBox;
         private static System.Windows.Forms.RichTextBox inputTextBox;
+        private static System.Windows.Forms.RichTextBox outputTextBox;
+
 
 
     }
