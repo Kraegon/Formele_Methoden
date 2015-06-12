@@ -17,9 +17,9 @@ namespace FormeleMethodenPracticum.model
      *  '{' & '}'   := The collections brackets
      *  '(' & ')'   := Your run-off-the-mill bracketty brackets.
      */
-    static class Regex
+    public static class Regex
     {
-        //private static const char[] validCharacters = {'$', '|','*','+','{','}','(',')'}; //And normal letters/numerals for language
+        private static readonly char[] validCharacters = {'$', '|','*','+','{','}','(',')'}; //And normal letters/numerals for language
 
         /**
          * Automata/stack should fix this nicely. 
@@ -30,10 +30,12 @@ namespace FormeleMethodenPracticum.model
             bool isValid = false;
             return isValid;
         }
-         /**/
-
+        /**/
         
-        
+        public static void ParseRegex(string expression)
+        {
+             
+        }
     }
 
 }

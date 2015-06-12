@@ -15,6 +15,7 @@ namespace FormeleMethodenPracticum
         static RegularGrammar regularGrammar;
         static string partToFill = "";
         static Boolean grammar = false;
+
         public Window()
         {
             InitializeComponent();
@@ -247,37 +248,19 @@ namespace FormeleMethodenPracticum
             public static void Create()
             {
                 #region Add commands
-                CommandsList.Add(DFA);
-                CommandsList.Add(NDFA);
-                CommandsList.Add(Grammar);
-                CommandsList.Add(Regex);
-                CommandsList.Add(Exit);
-                CommandsList.Add(GrammarString);
-                #endregion
-            }
-
-            private static Command
-            #region Commands
-                DFA = new Command("DFA",
+                CommandsList.Add(new Command("DFA",
                      "Play with DFAs.",
                      delegate()
                      {
                          FiniteAutomaton.CreateNew(false);
-                     }),
-                NDFA = new Command("NDFA",
+                     }));
+                CommandsList.Add(new Command("NDFA",
                         "Play with NDFAs.",
                         delegate()
                         {
                             FiniteAutomaton.CreateNew(true);
-                        }),
-                GrammarString = new Command("GrammarString",
-                        "Do grammar string thing.",
-                        delegate()
-                        {
-                            if (Window.regularGrammar != null)
-                                WriteLine(Window.regularGrammar.toString());
-                        }), 
-                Grammar = new Command("Grammar",
+                        }));
+                CommandsList.Add(new Command("Grammar",
                         "Play with formal grammar.",
                         delegate()
                         {
@@ -286,24 +269,29 @@ namespace FormeleMethodenPracticum
                             Window.grammar = true;
                             WriteLine("Type the symbols.");
                             WriteLine("Example: A, B");
-                        }),
-                Regex = new Command("Regex",
+                        }));
+                CommandsList.Add(new Command("Regex",
                         "Play with regular expressions.",
                         delegate()
                         {
                             WriteLine("Ik ben de regex");
                             WriteLine("Vrees mij");
-                        }),
-                
-
-                Exit = new Command("Exit",
+                        }));
+                CommandsList.Add(new Command("Exit",
                        "Quit the program.",
                        delegate()
                        {
                            Program.Terminate();
-                       });
-                
-            #endregion
+                       }));
+                CommandsList.Add(new Command("GrammarString",
+                        "Do grammar string thing.",
+                        delegate()
+                        {
+                            if (Window.regularGrammar != null)
+                                WriteLine(Window.regularGrammar.toString());
+                        }));
+                #endregion
+            }
         }
 
         /// <summary>
