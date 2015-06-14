@@ -8,6 +8,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+using FormeleMethodenPracticum.Model;
+
 namespace FormeleMethodenPracticum
 {
     public partial class Window : Form
@@ -79,11 +81,11 @@ namespace FormeleMethodenPracticum
             else
             {
                 string[] parts = inputTextBox.Text.Split(' ');
-
+                
                 //Garanteed to be atleast one non space character by the trigger.
                 Command inputCommand = Commands.FindCommand(parts[0].ToUpper());
                 if(inputCommand != null)
-                    inputCommand.Execute();
+                    inputCommand.Execute(inputTextBox.Text.Substring(parts[0].Length));
             }
         }
 
@@ -250,19 +252,19 @@ namespace FormeleMethodenPracticum
                 #region Add commands
                 CommandsList.Add(new Command("DFA",
                      "Play with DFAs.",
-                     delegate()
+                     delegate(string paramaters)
                      {
                          FiniteAutomaton.CreateNew(false);
                      }));
                 CommandsList.Add(new Command("NDFA",
                         "Play with NDFAs.",
-                        delegate()
+                        delegate(string paramaters)
                         {
                             FiniteAutomaton.CreateNew(true);
                         }));
                 CommandsList.Add(new Command("Grammar",
                         "Play with formal grammar.",
-                        delegate()
+                        delegate(string paramaters)
                         {
                             Window.regularGrammar = new RegularGrammar();
                             Window.partToFill = "SYMBOLS";
@@ -272,20 +274,20 @@ namespace FormeleMethodenPracticum
                         }));
                 CommandsList.Add(new Command("Regex",
                         "Play with regular expressions.",
-                        delegate()
+                        delegate(string paramaters)
                         {
-                            WriteLine("Ik ben de regex");
-                            WriteLine("Vrees mij");
+                            WriteLine("Params: " + paramaters);
+                            Regex.ParseRegex(paramaters);
                         }));
                 CommandsList.Add(new Command("Exit",
                        "Quit the program.",
-                       delegate()
+                       delegate(string paramaters)
                        {
                            Program.Terminate();
                        }));
                 CommandsList.Add(new Command("GrammarString",
                         "Do grammar string thing.",
-                        delegate()
+                        delegate(string paramaters)
                         {
                             if (Window.regularGrammar != null)
                                 WriteLine(Window.regularGrammar.toString());
@@ -303,7 +305,7 @@ namespace FormeleMethodenPracticum
             public string Description;
             public Behaviour command;
 
-            public delegate void Behaviour();
+            public delegate void Behaviour(string paramaters);
             
             public Command(string Name, string Description, Behaviour Command)
             {
@@ -312,9 +314,9 @@ namespace FormeleMethodenPracticum
                 this.command = Command; //Hold command
             }
 
-            public void Execute()
+            public void Execute(string paramaters)
             {
-                command(); //Do held back command
+                command(paramaters); //Do held back command
             }
 
             public override string ToString()
