@@ -9,7 +9,7 @@ namespace FormeleMethodenPracticum.FiniteAutomatons.Data
     public class AutomatonTransition
     {
         public AutomatonNodeCore automatonNode;
-        public List<char> state = new List<char>();
+        public List<char> acceptedSymbols = new List<char>();
 
         public AutomatonTransition(AutomatonNodeCore automatonNode)
         {

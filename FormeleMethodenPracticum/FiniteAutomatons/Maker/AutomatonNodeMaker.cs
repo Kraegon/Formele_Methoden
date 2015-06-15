@@ -1,4 +1,5 @@
 ﻿using FormeleMethodenPracticum.FiniteAutomatons.Data;
+using FormeleMethodenPracticum.FiniteAutomatons.Maker;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -23,6 +24,7 @@ namespace FormeleMethodenPracticum.FiniteAutomatons
         {
             this.automatonMaker = automatonMaker;
             createdAutomatonNodeCore.isEndNode = isEndNode;
+            this.Font = new Font(this.Font.SystemFontName, 20, FontStyle.Bold);
             this.BackColor = Color.Transparent;
             this.TabStop = false;
             this.BorderStyle = System.Windows.Forms.BorderStyle.None;
@@ -58,46 +60,41 @@ namespace FormeleMethodenPracticum.FiniteAutomatons
             }
             else
             {
-                if (automatonMaker.selectedAutomatonNodeMaker != this)
+                bool doesAlreadyContain = false;
+                foreach (AutomatonTransition transition in automatonMaker.selectedAutomatonNodeMaker.createdAutomatonNodeCore.children)
                 {
-                    bool doesAlreadyContain = false;
-                    foreach (AutomatonTransition transition in createdAutomatonNodeCore.parents)
+                    if (transition.automatonNode == this.createdAutomatonNodeCore)
                     {
-                        foreach (AutomatonTransition trans in transition.automatonNode.children)
-                        {
-                            if (trans.automatonNode == this.createdAutomatonNodeCore)
-                            {
-                                doesAlreadyContain = true;
-                                break;
-                            }
-                        }
+                        doesAlreadyContain = true;
+                        break;
+                    }
+                }
 
-                        if (doesAlreadyContain)
+                if (!doesAlreadyContain)
+                {
+                    AutomatonTransition trans1 = new AutomatonTransition(automatonMaker.selectedAutomatonNodeMaker.createdAutomatonNodeCore);
+                    AutomatonTransition trans2 = new AutomatonTransition(this.createdAutomatonNodeCore);
+                    createdAutomatonNodeCore.parents.Add(trans1);
+                    automatonMaker.selectedAutomatonNodeMaker.createdAutomatonNodeCore.children.Add(trans2);
+                    new AcceptedSymbolsInputBox(new List<AutomatonTransition>(){trans1, trans2}).Show();
+
+                }
+                else
+                {
+                    foreach (AutomatonTransition trans in createdAutomatonNodeCore.parents)
+                    {
+                        if (trans.automatonNode == automatonMaker.selectedAutomatonNodeMaker.createdAutomatonNodeCore)
+                        {
+                            createdAutomatonNodeCore.parents.Remove(trans);
                             break;
-                    }
-
-                    if (!doesAlreadyContain)
-                    {
-                        createdAutomatonNodeCore.parents.Add(new AutomatonTransition(automatonMaker.selectedAutomatonNodeMaker.createdAutomatonNodeCore));
-                        automatonMaker.selectedAutomatonNodeMaker.createdAutomatonNodeCore.children.Add(new AutomatonTransition(this.createdAutomatonNodeCore));
-                    }
-                    else
-                    {
-                        foreach (AutomatonTransition trans in createdAutomatonNodeCore.parents)
-                        {
-                            if (trans.automatonNode == automatonMaker.selectedAutomatonNodeMaker.createdAutomatonNodeCore)
-                            {
-                                createdAutomatonNodeCore.parents.Remove(trans);
-                                break;
-                            }
                         }
-                        foreach (AutomatonTransition trans in automatonMaker.selectedAutomatonNodeMaker.createdAutomatonNodeCore.children)
+                    }
+                    foreach (AutomatonTransition trans in automatonMaker.selectedAutomatonNodeMaker.createdAutomatonNodeCore.children)
+                    {
+                        if (trans.automatonNode == this.createdAutomatonNodeCore)
                         {
-                            if (trans.automatonNode == this.createdAutomatonNodeCore)
-                            {
-                                automatonMaker.selectedAutomatonNodeMaker.createdAutomatonNodeCore.children.Remove(trans);
-                                break;
-                            }
+                            automatonMaker.selectedAutomatonNodeMaker.createdAutomatonNodeCore.children.Remove(trans);
+                            break;
                         }
                     }
                 }
