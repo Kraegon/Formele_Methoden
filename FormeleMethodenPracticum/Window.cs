@@ -28,6 +28,7 @@ namespace FormeleMethodenPracticum
         }
 
         RegularGrammar regularGrammar;
+        Automaton automaton;
         string partToFill = "";
         Boolean grammar = false;
 
@@ -204,10 +205,31 @@ namespace FormeleMethodenPracticum
                     if (regularGrammar.containsSymbol(parts[0]))
                     {
                         regularGrammar.fillStartSymbol(parts[0]);
-                        partToFill = "";
-                        grammar = false;
-                        WriteLine("Grammar filled");
+                        partToFill = "ENDSYMBOLS";
+                        WriteLine("Type the EndSymbols");
+                        WriteLine("Example: B,C");
                     }
+                    break;
+                case "ENDSYMBOLS":
+                    List<string> endsymbols = new List<string>();
+
+                    parts = inputTextBox.Text.Split(',');
+                    for (int i = 0; i < parts.Length; i++)
+                    {
+                        string symbol = parts[i];
+                        string[] symbollist = symbol.Split(' ');
+                        if (symbollist.Length == 1)
+                            symbol = symbollist[0];
+                        else if (symbollist.Length == 2)
+                            symbol = symbollist[1];
+                        endsymbols.Add(symbol);
+                    }
+                    regularGrammar.fillEndSymbols(endsymbols);
+                    
+                    partToFill = "";
+                    grammar = false;
+                    WriteLine("Grammar filled");
+
                     break;
                 case "REGEX":
                     WriteLine("Ik ben de regex");
@@ -304,6 +326,15 @@ namespace FormeleMethodenPracticum
                         {
                             if (Window.INSTANCE.regularGrammar != null)
                                 Window.INSTANCE.WriteLine(Window.INSTANCE.regularGrammar.toString());
+                        }));
+                CommandsList.Add(new Command("GrammarToNDFA",
+                        "Convert Grammar to NDFA",
+                        delegate(string paramaters)
+                        {
+                            if (Window.INSTANCE.regularGrammar != null)
+                            {
+                                Window.INSTANCE.automaton = new Automaton(true, Window.INSTANCE.regularGrammar.changeToNDFA());
+                            }
                         }));
                 CommandsList.Add(new Command("Help",
                         "This help command.",

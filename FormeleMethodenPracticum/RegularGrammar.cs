@@ -11,6 +11,7 @@ namespace FormeleMethodenPracticum
         private List<string> alphabet;
         private List<string> symbols;
         private string startSymbol;
+        private List<string> endSymbols;
         private List<ProductLine> productionLines = new List<ProductLine>();
 
         public RegularGrammar()
@@ -35,6 +36,11 @@ namespace FormeleMethodenPracticum
             symbols = N;
         }
 
+        public void fillEndSymbols(List<string> N)
+        {
+            endSymbols = N;
+        }
+
         public void addProductionLine(ProductLine P)
         {
             productionLines.Add(P);
@@ -55,9 +61,38 @@ namespace FormeleMethodenPracticum
             return alphabet.Contains(Let);
         }
 
-        public void changeToNDFA()
+        public List<Transition> changeToNDFA()
         {
-            //Fill in transition and make a FiniteAutomaton
+            List<Transition> transitions = new List<Transition>();
+
+            foreach(string symbol in symbols)
+            {
+                Transition tr = null;
+                
+                if(symbol == startSymbol && endSymbols.Contains(symbol))
+                        tr = new Transition(symbol, true, true);
+                else if (symbol == startSymbol && !endSymbols.Contains(symbol))
+                        tr = new Transition(symbol, true, false);
+                else if (symbol != startSymbol && endSymbols.Contains(symbol))
+                    tr = new Transition(symbol, false, true);
+                else if (symbol != startSymbol && !endSymbols.Contains(symbol))
+                    tr = new Transition(symbol, false, false);
+
+                transitions.Add(tr);
+            }
+
+            foreach(ProductLine line in productionLines)
+            {
+                foreach(Transition tr in transitions)
+                {
+                    if (tr.getName() == line.fromSymbol)
+                    {
+                        tr.addArrows(line.letter, line.toSymbol);
+                    }    
+                }
+            }
+
+            return transitions;
         }
 
         public string toString()
