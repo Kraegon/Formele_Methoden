@@ -133,19 +133,22 @@ namespace FormeleMethodenPracticum
 
             public static void Create()
             {
-                #region Add commands
-                CommandsList.Add(new Command("DFA",
-                     "Play with DFAs.",
+                #region Add command
+                CommandsList.Add(new Command("Automaton",
+                     "Play with (N)DFAs.\n"+
+                     "Controls:\n"+
+                     "Leftern Double Click - New Node\n" +
+                     "Rightern Double Click - Remove Node\n" +
+                     "Drag - Move Node\n" +
+                     "Click - Select / Deselect Node\n" +
+                     "Enter when selecting - Make Start Node / Undo Making Start Node\n" +
+                     "Tab Then Selecting - Transition Maker Enabled / Transition Maker Disabled\n" +
+                     "Click When Transition Making - New Transition / Remove Transition\n" +
+                     "Keyup - Assign State Name",
                      delegate(string paramaters)
                      {
                          AutomatonMaker.CreateNew(false);
                      }));
-                CommandsList.Add(new Command("NDFA",
-                        "Play with NDFAs.",
-                        delegate(string paramaters)
-                        {
-                            AutomatonMaker.CreateNew(true);
-                        }));
                 CommandsList.Add(new Command("Grammar",
                         "Play with formal grammar.",
                         delegate(string paramaters)
@@ -192,6 +195,7 @@ namespace FormeleMethodenPracticum
                             foreach(Command c in CommandsList)
                             {
                                 Window.INSTANCE.WriteLine(c.ToString());
+                                Window.INSTANCE.WriteLine("");
                             }
                         }));
                 #endregion
