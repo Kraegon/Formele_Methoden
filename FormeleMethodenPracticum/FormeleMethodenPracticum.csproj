@@ -44,7 +44,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="FiniteAutomaton.cs" />
+    <Compile Include="AutomatonCoreMaker.cs" />
+    <Compile Include="FiniteAutomatons\Data\AutomatonCore.cs" />
+    <Compile Include="FiniteAutomatons\Data\AutomatonTransition.cs" />
+    <Compile Include="FiniteAutomatons\Maker\AutomatonMaker.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FiniteAutomatons\Data\AutomatonNodeCore.cs" />
+    <Compile Include="FiniteAutomatons\Maker\AutomatonNodeMaker.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Window.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -54,7 +63,6 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RegularGrammar.cs" />
-    <Compile Include="Transition.cs" />
     <EmbeddedResource Include="Window.resx">
       <DependentUpon>Window.cs</DependentUpon>
     </EmbeddedResource>
@@ -80,6 +88,7 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

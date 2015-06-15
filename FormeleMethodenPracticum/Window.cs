@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FormeleMethodenPracticum.FiniteAutomatons;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -67,10 +68,10 @@ namespace FormeleMethodenPracticum
             switch (parts[0].ToUpper())
             {
                 case "DFA":
-                    FiniteAutomaton.CreateNew(false);
+                    AutomatonMaker.CreateNew(false);
                     break;
                 case "NDFA":
-                    FiniteAutomaton.CreateNew(true);
+                    AutomatonMaker.CreateNew(true);
                     break;
             }
         }
