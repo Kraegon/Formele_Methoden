@@ -16,7 +16,12 @@ namespace FormeleMethodenPracticum
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Window());
+            Application.Run(Window.INSTANCE);
+        }
+
+        public static void Terminate()
+        {
+            Application.Exit();
         }
     }
 }

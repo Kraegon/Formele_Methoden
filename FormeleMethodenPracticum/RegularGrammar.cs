@@ -11,7 +11,12 @@ namespace FormeleMethodenPracticum
         private List<string> alphabet;
         private List<string> symbols;
         private string startSymbol;
-        private List<ProductLine> productionLines;
+        private List<string> endSymbols;
+        private List<ProductLine> productionLines = new List<ProductLine>();
+
+        public RegularGrammar()
+        {
+        }
 
         public RegularGrammar(List<string> N, List<string> E, List<ProductLine> P, string S)
         {
@@ -21,8 +26,80 @@ namespace FormeleMethodenPracticum
             startSymbol = S;
         }
 
+        public void fillAlphabet(List<string> E)
+        {
+            alphabet = E;
+        }
+
+        public void fillSymbols(List<string> N)
+        {
+            symbols = N;
+        }
+
+        public void fillEndSymbols(List<string> N)
+        {
+            endSymbols = N;
+        }
+
+        public void addProductionLine(ProductLine P)
+        {
+            productionLines.Add(P);
+        }
+
+        public void fillStartSymbol(string S)
+        {
+            startSymbol = S;
+        }
+
+        public bool containsSymbol(string Sym)
+        {
+            return symbols.Contains(Sym);
+        }
+
+        public bool containsLetter(string Let)
+        {
+            return alphabet.Contains(Let);
+        }
+
+        //public List<Transition> changeToNDFA()
+        //{
+        //    List<Transition> transitions = new List<Transition>();
+
+        //    foreach(string symbol in symbols)
+        //    {
+        //        Transition tr = null;
+                
+        //        if(symbol == startSymbol && endSymbols.Contains(symbol))
+        //                tr = new Transition(symbol, true, true);
+        //        else if (symbol == startSymbol && !endSymbols.Contains(symbol))
+        //                tr = new Transition(symbol, true, false);
+        //        else if (symbol != startSymbol && endSymbols.Contains(symbol))
+        //            tr = new Transition(symbol, false, true);
+        //        else if (symbol != startSymbol && !endSymbols.Contains(symbol))
+        //            tr = new Transition(symbol, false, false);
+
+        //        transitions.Add(tr);
+        //    }
+
+        //    foreach(ProductLine line in productionLines)
+        //    {
+        //        foreach(Transition tr in transitions)
+        //        {
+        //            if (tr.getName() == line.fromSymbol)
+        //            {
+        //                tr.addArrows(line.letter, line.toSymbol);
+        //            }    
+        //        }
+        //    }
+
+        //    return transitions;
+        //}
+
         public string toString()
         {
+            if (alphabet.Count == 0 || symbols.Count == 0 || productionLines.Count == 0)
+                return "Not all the variables of the grammar are filled.";
+            
             string description = "";
 
             //Symbols

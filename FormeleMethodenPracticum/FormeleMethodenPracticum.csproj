@@ -44,7 +44,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AutomatonCoreMaker.cs" />
     <Compile Include="FiniteAutomatons\Data\AutomatonCore.cs" />
     <Compile Include="FiniteAutomatons\Data\AutomatonTransition.cs" />
     <Compile Include="FiniteAutomatons\Maker\AutomatonMaker.cs">
