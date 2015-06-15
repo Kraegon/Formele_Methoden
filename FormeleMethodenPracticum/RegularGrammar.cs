@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FormeleMethodenPracticum.FiniteAutomatons;
+using FormeleMethodenPracticum.FiniteAutomatons.Data;
 
 namespace FormeleMethodenPracticum
 {
@@ -64,39 +66,96 @@ namespace FormeleMethodenPracticum
             return alphabet.Contains(Let);
         }
 
-        //public List<Transition> changeToNDFA()
-        //{
-        //    List<Transition> transitions = new List<Transition>();
+        public void changeToNDFA()
+        {
+            List<AutomatonNodeCore> nodes = new List<AutomatonNodeCore>();
+            foreach(string symbol in symbols)
+            {
+                AutomatonNodeCore ac = new AutomatonNodeCore();
+                ac.name = symbol;
+                if(symbol == startSymbol)
+                {
+                    ac.isBeginNode = true;
+                    ac.isEndNode = false;
+                }
+                else if(endSymbols.Contains(symbol))
+                {
+                    ac.isBeginNode = false;
+                    ac.isEndNode = true;
+                }
+                else
+                {
+                    ac.isBeginNode = false;
+                    ac.isEndNode = false;
+                }
+                nodes.Add(ac);
+            }
+            
+            foreach(ProductLine pl in productionLines)
+            {
+                foreach(AutomatonNodeCore node in nodes)
+                {
+                    if(pl.fromSymbol == node.name)
+                    {
+                        //add to children
+                        bool newTrans = true;
 
-        //    foreach(string symbol in symbols)
-        //    {
-        //        Transition tr = null;
-                
-        //        if(symbol == startSymbol && endSymbols.Contains(symbol))
-        //                tr = new Transition(symbol, true, true);
-        //        else if (symbol == startSymbol && !endSymbols.Contains(symbol))
-        //                tr = new Transition(symbol, true, false);
-        //        else if (symbol != startSymbol && endSymbols.Contains(symbol))
-        //            tr = new Transition(symbol, false, true);
-        //        else if (symbol != startSymbol && !endSymbols.Contains(symbol))
-        //            tr = new Transition(symbol, false, false);
+                        //Check if there already is a transition with the samen nodecores
+                        //If there is, add the extra state letter
+                        foreach(AutomatonTransition tr in node.children)
+                        {
+                            if (tr.automatonNode.name == pl.toSymbol)
+                            {
+                                tr.state.Add(pl.letter[0]);
+                                newTrans = false;
+                            }
+                        }
 
-        //        transitions.Add(tr);
-        //    }
+                        if (newTrans)
+                        {
+                            AutomatonTransition trans = null;
+                            foreach (AutomatonNodeCore endNode in nodes)
+                            {
+                                if (endNode.name == pl.toSymbol)
+                                    trans = new AutomatonTransition(endNode);
+                            }
+                            trans.state.Add(pl.letter[0]);
+                            node.children.Add(trans);
+                        }
+                    }
+                    else if (pl.toSymbol == node.name)
+                    {
+                        //add to parent
 
-        //    foreach(ProductLine line in productionLines)
-        //    {
-        //        foreach(Transition tr in transitions)
-        //        {
-        //            if (tr.getName() == line.fromSymbol)
-        //            {
-        //                tr.addArrows(line.letter, line.toSymbol);
-        //            }    
-        //        }
-        //    }
+                        bool newTrans = true;
 
-        //    return transitions;
-        //}
+                        //Check if there already is a transition with the samen nodecores
+                        //If there is, add the extra state letter
+                        foreach (AutomatonTransition tr in node.parents)
+                        {
+                            if (tr.automatonNode.name == pl.toSymbol)
+                            {
+                                tr.state.Add(pl.letter[0]);
+                                newTrans = false;
+                            }
+                        }
+
+                        if (newTrans)
+                        {
+                            AutomatonTransition trans = null;
+                            foreach (AutomatonNodeCore firstNode in nodes)
+                            {
+                                if (firstNode.name == pl.fromSymbol)
+                                    trans = new AutomatonTransition(firstNode);
+                            }
+                            trans.state.Add(pl.letter[0]);
+                            node.parents.Add(trans);
+                        }
+                    }
+                }
+            }
+            //AutomatonMaker.CreateNew(true);
+        }
 
         public string processGrammar(string input)
         {

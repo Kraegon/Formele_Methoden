@@ -9,6 +9,7 @@ namespace FormeleMethodenPracticum.FiniteAutomatons
 {
     public class AutomatonNodeCore
     {
+        public string name;
         public bool isEndNode;
         public bool isBeginNode;
         public List<AutomatonTransition> parents = new List<AutomatonTransition>();

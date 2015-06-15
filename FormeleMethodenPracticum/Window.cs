@@ -180,10 +180,10 @@ namespace FormeleMethodenPracticum
                         "Convert Grammar to NDFA",
                         delegate(string paramaters)
                         {
-                            //if (Window.INSTANCE.regularGrammar != null)
-                            //{
-                            //    Window.INSTANCE.automaton = new Automaton(true, Window.INSTANCE.regularGrammar.changeToNDFA());
-                            //}
+                            if (Window.INSTANCE.regularGrammar != null)
+                            {
+                                Window.INSTANCE.regularGrammar.changeToNDFA();
+                            }
                         }));
                 CommandsList.Add(new Command("Help",
                         "This help command.",

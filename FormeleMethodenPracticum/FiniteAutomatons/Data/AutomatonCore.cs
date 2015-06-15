@@ -10,5 +10,8 @@ namespace FormeleMethodenPracticum.FiniteAutomatons
     {
         public List<AutomatonNodeMaker> nodes = new List<AutomatonNodeMaker>();
         public bool nondeterministic;
+
+        public bool parse = false;
+        public List<AutomatonNodeCore> noMakerNodes;
     }
 }
