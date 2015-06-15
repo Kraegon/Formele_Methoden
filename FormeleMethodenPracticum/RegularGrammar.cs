@@ -57,12 +57,7 @@ namespace FormeleMethodenPracticum
 
         public void changeToNDFA()
         {
-            
-        }
-
-        public void changeToRegularExpression()
-        {
-
+            //Fill in transition and make a FiniteAutomaton
         }
 
         public string toString()
