@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FormeleMethodenPracticum.FiniteAutomatons;
+using FormeleMethodenPracticum.FiniteAutomatons.Data;
 
 namespace FormeleMethodenPracticum
 {
@@ -13,6 +15,9 @@ namespace FormeleMethodenPracticum
         private string startSymbol;
         private List<string> endSymbols;
         private List<ProductLine> productionLines = new List<ProductLine>();
+
+        public string partToFill = "";
+        public bool filling = false;
 
         public RegularGrammar()
         {
@@ -61,39 +66,230 @@ namespace FormeleMethodenPracticum
             return alphabet.Contains(Let);
         }
 
-        //public List<Transition> changeToNDFA()
-        //{
-        //    List<Transition> transitions = new List<Transition>();
+        public void changeToNDFA()
+        {
+            List<AutomatonNodeCore> nodes = new List<AutomatonNodeCore>();
+            foreach(string symbol in symbols)
+            {
+                AutomatonNodeCore ac = new AutomatonNodeCore();
+                ac.name = symbol;
+                if(symbol == startSymbol)
+                {
+                    ac.isBeginNode = true;
+                    ac.isEndNode = false;
+                }
+                else if(endSymbols.Contains(symbol))
+                {
+                    ac.isBeginNode = false;
+                    ac.isEndNode = true;
+                }
+                else
+                {
+                    ac.isBeginNode = false;
+                    ac.isEndNode = false;
+                }
+                nodes.Add(ac);
+            }
+            
+            foreach(ProductLine pl in productionLines)
+            {
+                foreach(AutomatonNodeCore node in nodes)
+                {
+                    if(pl.fromSymbol == node.name)
+                    {
+                        //add to children
+                        bool newTrans = true;
 
-        //    foreach(string symbol in symbols)
-        //    {
-        //        Transition tr = null;
-                
-        //        if(symbol == startSymbol && endSymbols.Contains(symbol))
-        //                tr = new Transition(symbol, true, true);
-        //        else if (symbol == startSymbol && !endSymbols.Contains(symbol))
-        //                tr = new Transition(symbol, true, false);
-        //        else if (symbol != startSymbol && endSymbols.Contains(symbol))
-        //            tr = new Transition(symbol, false, true);
-        //        else if (symbol != startSymbol && !endSymbols.Contains(symbol))
-        //            tr = new Transition(symbol, false, false);
+                        //Check if there already is a transition with the samen nodecores
+                        //If there is, add the extra state letter
+                        foreach(AutomatonTransition tr in node.children)
+                        {
+                            if (tr.automatonNode.name == pl.toSymbol)
+                            {
+                                tr.state.Add(pl.letter[0]);
+                                newTrans = false;
+                            }
+                        }
 
-        //        transitions.Add(tr);
-        //    }
+                        if (newTrans)
+                        {
+                            AutomatonTransition trans = null;
+                            foreach (AutomatonNodeCore endNode in nodes)
+                            {
+                                if (endNode.name == pl.toSymbol)
+                                    trans = new AutomatonTransition(endNode);
+                            }
+                            trans.state.Add(pl.letter[0]);
+                            node.children.Add(trans);
+                        }
+                    }
+                    else if (pl.toSymbol == node.name)
+                    {
+                        //add to parent
 
-        //    foreach(ProductLine line in productionLines)
-        //    {
-        //        foreach(Transition tr in transitions)
-        //        {
-        //            if (tr.getName() == line.fromSymbol)
-        //            {
-        //                tr.addArrows(line.letter, line.toSymbol);
-        //            }    
-        //        }
-        //    }
+                        bool newTrans = true;
 
-        //    return transitions;
-        //}
+                        //Check if there already is a transition with the samen nodecores
+                        //If there is, add the extra state letter
+                        foreach (AutomatonTransition tr in node.parents)
+                        {
+                            if (tr.automatonNode.name == pl.toSymbol)
+                            {
+                                tr.state.Add(pl.letter[0]);
+                                newTrans = false;
+                            }
+                        }
+
+                        if (newTrans)
+                        {
+                            AutomatonTransition trans = null;
+                            foreach (AutomatonNodeCore firstNode in nodes)
+                            {
+                                if (firstNode.name == pl.fromSymbol)
+                                    trans = new AutomatonTransition(firstNode);
+                            }
+                            trans.state.Add(pl.letter[0]);
+                            node.parents.Add(trans);
+                        }
+                    }
+                }
+            }
+            //AutomatonMaker.CreateNew(true);
+        }
+
+        public string processGrammar(string input)
+        {
+            string output = "";
+            switch (partToFill)
+            {
+                case "SYMBOLS":
+                    List<string> symbols = new List<string>();
+
+                    string[] parts = input.Split(',');
+                    for (int i = 0; i < parts.Length; i++)
+                    {
+                        string symbol = parts[i];
+                        string[] symbollist = symbol.Split(' ');
+                        if (symbollist.Length == 1)
+                            symbol = symbollist[0];
+                        else if (symbollist.Length == 2)
+                            symbol = symbollist[1];
+                        symbols.Add(symbol);
+                    }
+                    output = "Type the alphabet letters. \n";
+                    output += "Example: a, b \n";
+                    partToFill = "ALPHABET";
+                    fillSymbols(symbols);
+                    break;
+                case "ALPHABET":
+                    List<string> letters = new List<string>();
+
+                    parts = input.Split(',');
+                    for (int i = 0; i < parts.Length; i++)
+                    {
+                        string letter = parts[i];
+                        string[] letterlist = letter.Split(' ');
+                        if (letterlist.Length == 1)
+                            letter = letterlist[0];
+                        else if (letterlist.Length == 2)
+                            letter = letterlist[1];
+                        letters.Add(letter);
+                    }
+                    output = "Type the ProductLines to add them in the list \n";
+                    output += "Example: A, a, B \n";
+                    output += "Type 'end' to end the list \n";
+                    partToFill = "PRODUCTLINES";
+                    fillAlphabet(letters);
+                    break;
+                case "PRODUCTLINES":
+
+                    parts = input.Split(',');
+
+                    if (parts[0].ToUpper() == "END")
+                    {
+                        output = "Type the StartSymbol \n";
+                        output += "Example: A \n";
+                        partToFill = "STARTSYMBOL";
+                    }
+                    else
+                    {
+                        parts = input.Split(',');
+                        if (parts.Length == 3)
+                        {
+                            string startSymbol = "";
+                            string alphabet = "";
+                            string endSymbol = "";
+
+                            for (int i = 0; i < parts.Length; i++)
+                            {
+                                string letter = parts[i];
+                                string[] letterlist = letter.Split(' ');
+                                int index = 0;
+                                if (letterlist.Length == 1)
+                                    index = 0;
+                                else if (letterlist.Length == 2)
+                                    index = 1;
+
+                                switch (i)
+                                {
+                                    case 0:
+                                        startSymbol = letterlist[index];
+                                        break;
+                                    case 1:
+                                        alphabet = letterlist[index];
+                                        break;
+                                    case 2:
+                                        endSymbol = letterlist[index];
+                                        break;
+                                }
+                            }
+                            if (containsSymbol(startSymbol) && containsSymbol(endSymbol) && containsLetter(alphabet))
+                            {
+                                ProductLine productLine = new ProductLine(startSymbol, alphabet, endSymbol);
+                                addProductionLine(productLine);
+                            }
+                            else
+                            {
+                                output = "The given values are not available in the grammar \n";
+                            }
+                        }
+                    }
+                    break;
+                case "STARTSYMBOL":
+                    parts = input.Split(' ');
+                    if (containsSymbol(parts[0]))
+                    {
+                        fillStartSymbol(parts[0]);
+                        partToFill = "ENDSYMBOLS";
+                        output = "Type the EndSymbols \n";
+                        output += "Example: B,C \n";
+                    }
+                    break;
+                case "ENDSYMBOLS":
+                    List<string> endsymbols = new List<string>();
+
+                    parts = input.Split(',');
+                    for (int i = 0; i < parts.Length; i++)
+                    {
+                        string symbol = parts[i];
+                        string[] symbollist = symbol.Split(' ');
+                        if (symbollist.Length == 1)
+                            symbol = symbollist[0];
+                        else if (symbollist.Length == 2)
+                            symbol = symbollist[1];
+                        endsymbols.Add(symbol);
+                    }
+                    fillEndSymbols(endsymbols);
+
+                    partToFill = "";
+                    filling = false;
+                    output = "Grammar filled \n";
+
+                    break;
+            }
+
+            return output;
+        }
 
         public string toString()
         {
@@ -130,7 +326,7 @@ namespace FormeleMethodenPracticum
                 if (i != productionLines.Count - 1)
                     description += ", ";
             }
-            description += "}\n";
+            description += "}";
 
             return description;
         }
