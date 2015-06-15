@@ -72,7 +72,7 @@ namespace FormeleMethodenPracticum
             foreach(string symbol in symbols)
             {
                 AutomatonNodeCore ac = new AutomatonNodeCore();
-                ac.name = symbol;
+                ac.stateName = symbol;
                 if(symbol == startSymbol)
                 {
                     ac.isBeginNode = true;
@@ -95,7 +95,7 @@ namespace FormeleMethodenPracticum
             {
                 foreach(AutomatonNodeCore node in nodes)
                 {
-                    if(pl.fromSymbol == node.name)
+                    if(pl.fromSymbol == node.stateName)
                     {
                         //add to children
                         bool newTrans = true;
@@ -104,9 +104,9 @@ namespace FormeleMethodenPracticum
                         //If there is, add the extra state letter
                         foreach(AutomatonTransition tr in node.children)
                         {
-                            if (tr.automatonNode.name == pl.toSymbol)
+                            if (tr.automatonNode.stateName == pl.toSymbol)
                             {
-                                tr.state.Add(pl.letter[0]);
+                                tr.acceptedSymbols.Add(pl.letter[0]);
                                 newTrans = false;
                             }
                         }
@@ -116,14 +116,14 @@ namespace FormeleMethodenPracticum
                             AutomatonTransition trans = null;
                             foreach (AutomatonNodeCore endNode in nodes)
                             {
-                                if (endNode.name == pl.toSymbol)
+                                if (endNode.stateName == pl.toSymbol)
                                     trans = new AutomatonTransition(endNode);
                             }
-                            trans.state.Add(pl.letter[0]);
+                            trans.acceptedSymbols.Add(pl.letter[0]);
                             node.children.Add(trans);
                         }
                     }
-                    else if (pl.toSymbol == node.name)
+                    else if (pl.toSymbol == node.stateName)
                     {
                         //add to parent
 
@@ -133,9 +133,9 @@ namespace FormeleMethodenPracticum
                         //If there is, add the extra state letter
                         foreach (AutomatonTransition tr in node.parents)
                         {
-                            if (tr.automatonNode.name == pl.toSymbol)
+                            if (tr.automatonNode.stateName == pl.toSymbol)
                             {
-                                tr.state.Add(pl.letter[0]);
+                                tr.acceptedSymbols.Add(pl.letter[0]);
                                 newTrans = false;
                             }
                         }
@@ -145,10 +145,10 @@ namespace FormeleMethodenPracticum
                             AutomatonTransition trans = null;
                             foreach (AutomatonNodeCore firstNode in nodes)
                             {
-                                if (firstNode.name == pl.fromSymbol)
+                                if (firstNode.stateName == pl.fromSymbol)
                                     trans = new AutomatonTransition(firstNode);
                             }
-                            trans.state.Add(pl.letter[0]);
+                            trans.acceptedSymbols.Add(pl.letter[0]);
                             node.parents.Add(trans);
                         }
                     }
