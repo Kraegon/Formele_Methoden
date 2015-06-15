@@ -77,6 +77,9 @@
     <EmbeddedResource Include="FiniteAutomatons\Maker\AcceptedSymbolsInputBox.resx">
       <DependentUpon>AcceptedSymbolsInputBox.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="FiniteAutomatons\Maker\AutomatonMaker.resx">
+      <DependentUpon>AutomatonMaker.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FiniteAutomatons\Maker\StateNameInputBox.resx">
       <DependentUpon>StateNameInputBox.cs</DependentUpon>
     </EmbeddedResource>

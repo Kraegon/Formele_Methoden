@@ -76,7 +76,7 @@ namespace FormeleMethodenPracticum.FiniteAutomatons
                     AutomatonTransition trans2 = new AutomatonTransition(this.createdAutomatonNodeCore);
                     createdAutomatonNodeCore.parents.Add(trans1);
                     automatonMaker.selectedAutomatonNodeMaker.createdAutomatonNodeCore.children.Add(trans2);
-                    new AcceptedSymbolsInputBox(new List<AutomatonTransition>(){trans1, trans2}).Show();
+                    new AcceptedSymbolsInputBox(new List<AutomatonTransition>(){trans1, trans2}).ShowDialog();
 
                 }
                 else

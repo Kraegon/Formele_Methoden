@@ -8,10 +8,12 @@ namespace FormeleMethodenPracticum.FiniteAutomatons
 {
     public class AutomatonCore
     {
-        public List<AutomatonNodeMaker> nodes = new List<AutomatonNodeMaker>();
+        public List<AutomatonNodeCore> nodes = new List<AutomatonNodeCore>();
         public bool nondeterministic;
 
-        public bool parse = false;
-        public List<AutomatonNodeCore> noMakerNodes;
+        public AutomatonCore(bool nondeterministic)
+        {
+            this.nondeterministic = nondeterministic;
+        }
     }
 }

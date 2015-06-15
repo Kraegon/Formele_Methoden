@@ -1,10 +1,12 @@
-﻿using System;
+﻿using FormeleMethodenPracticum.FiniteAutomatons;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -25,6 +27,7 @@ namespace FormeleMethodenPracticum
             }
         }
 
+        public object lastProcessedResult;
         RegularGrammar regularGrammar;
 
         public Window()
@@ -134,9 +137,9 @@ namespace FormeleMethodenPracticum
             public static void Create()
             {
                 #region Add command
-                CommandsList.Add(new Command("Automaton",
-                     "Play with (N)DFAs.\n"+
-                     "Controls:\n"+
+                CommandsList.Add(new Command("DFA",
+                     "Play with (N)DFAs.\n" +
+                     "Controls:\n" +
                      "Leftern Double Click - New Node\n" +
                      "Rightern Double Click - Remove Node\n" +
                      "Drag - Move Node\n" +
@@ -147,7 +150,31 @@ namespace FormeleMethodenPracticum
                      "Keyup - Assign State Name",
                      delegate(string paramaters)
                      {
-                         AutomatonMaker.CreateNew(false);
+                         Window.INSTANCE.lastProcessedResult = AutomatonMaker.CreateNew(false);
+                     }));
+                CommandsList.Add(new Command("NDFA",
+                     "Play with (N)DFAs.\n" +
+                     "Controls:\n" +
+                     "Leftern Double Click - New Node\n" +
+                     "Rightern Double Click - Remove Node\n" +
+                     "Drag - Move Node\n" +
+                     "Click - Select / Deselect Node\n" +
+                     "Enter when selecting - Make Start Node / Undo Making Start Node\n" +
+                     "Tab Then Selecting - Transition Maker Enabled / Transition Maker Disabled\n" +
+                     "Click When Transition Making - New Transition / Remove Transition\n" +
+                     "Keyup - Assign State Name",
+                     delegate(string paramaters)
+                     {
+                         Window.INSTANCE.lastProcessedResult = AutomatonMaker.CreateNew(true);
+                     }));
+                CommandsList.Add(new Command("isPreviousItemDFA",
+                     "Check whether the last made object is a DFA",
+                     delegate(string paramaters)
+                     {
+                         if (Window.INSTANCE.lastProcessedResult is AutomatonCore)
+                             Window.INSTANCE.WriteLine("Was the previous automaton deterministic?: " + ((!(Window.INSTANCE.lastProcessedResult as AutomatonCore).nondeterministic) ? "true" : (AutomatonMaker.isDFA(Window.INSTANCE.lastProcessedResult as AutomatonCore) ? "true" : "false")));
+                         else
+                             Window.INSTANCE.WriteLine("The previous result was not an automaton.");//TODO: Check for other needs
                      }));
                 CommandsList.Add(new Command("Grammar",
                         "Play with formal grammar.",

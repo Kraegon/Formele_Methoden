@@ -66,9 +66,10 @@ namespace FormeleMethodenPracticum
             return alphabet.Contains(Let);
         }
 
-        public void changeToNDFA()
+        public AutomatonCore changeToNDFA()
         {
-            List<AutomatonNodeCore> nodes = new List<AutomatonNodeCore>();
+            AutomatonCore automatonCore = new AutomatonCore(true);
+
             foreach(string symbol in symbols)
             {
                 AutomatonNodeCore ac = new AutomatonNodeCore();
@@ -88,12 +89,12 @@ namespace FormeleMethodenPracticum
                     ac.isBeginNode = false;
                     ac.isEndNode = false;
                 }
-                nodes.Add(ac);
+                automatonCore.nodes.Add(ac);
             }
             
             foreach(ProductLine pl in productionLines)
             {
-                foreach(AutomatonNodeCore node in nodes)
+                foreach (AutomatonNodeCore node in automatonCore.nodes)
                 {
                     if(pl.fromSymbol == node.stateName)
                     {
@@ -114,7 +115,7 @@ namespace FormeleMethodenPracticum
                         if (newTrans)
                         {
                             AutomatonTransition trans = null;
-                            foreach (AutomatonNodeCore endNode in nodes)
+                            foreach (AutomatonNodeCore endNode in automatonCore.nodes)
                             {
                                 if (endNode.stateName == pl.toSymbol)
                                     trans = new AutomatonTransition(endNode);
@@ -143,7 +144,7 @@ namespace FormeleMethodenPracticum
                         if (newTrans)
                         {
                             AutomatonTransition trans = null;
-                            foreach (AutomatonNodeCore firstNode in nodes)
+                            foreach (AutomatonNodeCore firstNode in automatonCore.nodes)
                             {
                                 if (firstNode.stateName == pl.fromSymbol)
                                     trans = new AutomatonTransition(firstNode);
@@ -154,7 +155,7 @@ namespace FormeleMethodenPracticum
                     }
                 }
             }
-            //AutomatonMaker.CreateNew(true);
+            return automatonCore;
         }
 
         public string processGrammar(string input)

@@ -54,6 +54,7 @@ namespace FormeleMethodenPracticum.FiniteAutomatons.Maker
                         automatonTransition.acceptedSymbols.Clear();
                     }
                     MessageBox.Show("Your string was not accepted, please remove the transition and try again.", "Error");
+                    break;
                 }
             }
             this.Close();

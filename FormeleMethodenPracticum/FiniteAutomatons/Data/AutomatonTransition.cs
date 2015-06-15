@@ -9,6 +9,7 @@ namespace FormeleMethodenPracticum.FiniteAutomatons.Data
     public class AutomatonTransition
     {
         public AutomatonNodeCore automatonNode;
+        //Empty list means epsilon
         public List<char> acceptedSymbols = new List<char>();
 
         public AutomatonTransition(AutomatonNodeCore automatonNode)

@@ -14,21 +14,17 @@ namespace FormeleMethodenPracticum
 {
     public class AutomatonMaker : Form
     {
-        public AutomatonCore createdAutomatonCore = new AutomatonCore();
+        public AutomatonCore createdAutomatonCore;
         public AutomatonNodeMaker selectedAutomatonNodeMaker;
+        private Button button1;
         public bool transitionCreator = false;
 
         public AutomatonMaker(bool nondeterministic)
         {
-            createdAutomatonCore.nondeterministic = nondeterministic;
+            createdAutomatonCore = new AutomatonCore(nondeterministic);
 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(284, 261);
-            this.Name = "AutomatonMaker";
-            this.Text = "AutomatonMaker";
-            this.ResumeLayout(false);
-            this.DoubleBuffered = true;
+            InitializeComponent();
+
             this.DoubleClick += delegate(object sender, EventArgs e)
             {
                 MouseEventArgs me = e as MouseEventArgs;
@@ -38,7 +34,7 @@ namespace FormeleMethodenPracticum
                 b.FlatStyle = FlatStyle.Popup;
                 b.Parent = this;
                 this.Controls.Add(b);
-                createdAutomatonCore.nodes.Add(b);
+                createdAutomatonCore.nodes.Add(b.createdAutomatonNodeCore);
             };
             Timer refreshTimer = new Timer();
             refreshTimer.Interval = (int)Math.Round(1000.0f / 30.0f);
@@ -69,8 +65,13 @@ namespace FormeleMethodenPracticum
                 {
                     a.EndCap = LineCap.ArrowAnchor;
 
-                    foreach (AutomatonNodeMaker n1 in Controls)
+                    foreach (object obj in Controls)
                     {
+                        AutomatonNodeMaker n1 = obj as AutomatonNodeMaker;
+
+                        if (n1 == null)
+                            continue;
+
                         //End
                         using (Pen p = new Pen(n1 == selectedAutomatonNodeMaker ? (transitionCreator ? Color.Pink : Color.Blue) : Color.Red, 4))
                         {
@@ -90,8 +91,13 @@ namespace FormeleMethodenPracticum
                         //Transition
                         foreach (AutomatonTransition transition in n1.createdAutomatonNodeCore.children)
                         {
-                            foreach (AutomatonNodeMaker n2 in Controls)
+                            foreach (object obj2 in Controls)
                             {
+                                AutomatonNodeMaker n2 = obj2 as AutomatonNodeMaker;
+
+                                if (n2 == null)
+                                    continue;
+
                                 if (transition.automatonNode == n2.createdAutomatonNodeCore)
                                 {
                                     string txt = "";
@@ -137,7 +143,7 @@ namespace FormeleMethodenPracticum
             node.createdAutomatonNodeCore.parents.ForEach(parent => parent.automatonNode.children.RemoveAll(n => n.automatonNode == node.createdAutomatonNodeCore));
             node.createdAutomatonNodeCore.children.ForEach(child => child.automatonNode.parents.RemoveAll(n => n.automatonNode == node.createdAutomatonNodeCore));
 
-            createdAutomatonCore.nodes.Remove(node);
+            createdAutomatonCore.nodes.Remove(node.createdAutomatonNodeCore);
             Controls.Remove(node);
         }
 
@@ -150,7 +156,7 @@ namespace FormeleMethodenPracticum
 
             if (char.IsLetterOrDigit((char)e.KeyCode))
             {
-                new StateNameInputBox(selectedAutomatonNodeMaker).Show();
+                new StateNameInputBox(selectedAutomatonNodeMaker).ShowDialog();
             }
             else if (e.KeyCode == Keys.Tab)
                 transitionCreator = !transitionCreator;
@@ -166,8 +172,119 @@ namespace FormeleMethodenPracticum
         public static AutomatonCore ShowAutomatonMaker(bool nondeterministic)
         {
             AutomatonMaker automatonMaker = new AutomatonMaker(nondeterministic);
-            automatonMaker.Show();
+            automatonMaker.ShowDialog();
             return automatonMaker.createdAutomatonCore;
+        }
+
+        private void InitializeComponent()
+        {
+            this.button1 = new System.Windows.Forms.Button();
+            this.SuspendLayout();
+            // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(1041, 539);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(75, 23);
+            this.button1.TabIndex = 0;
+            this.button1.TabStop = false;
+            this.button1.Text = "Done";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.button1.KeyUp += new System.Windows.Forms.KeyEventHandler(this.button1_KeyUp);
+            // 
+            // AutomatonMaker
+            // 
+            this.ClientSize = new System.Drawing.Size(1128, 574);
+            this.ControlBox = false;
+            this.Controls.Add(this.button1);
+            this.DoubleBuffered = true;
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
+            this.Name = "AutomatonMaker";
+            this.Text = "AutomatonMaker";
+            this.ResumeLayout(false);
+
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            if (createdAutomatonCore.nondeterministic)
+            {
+                Window.INSTANCE.lastProcessedResult = createdAutomatonCore;
+                this.Close();
+                return;
+            }
+
+            if (isDFA(createdAutomatonCore))
+            {
+                Window.INSTANCE.lastProcessedResult = createdAutomatonCore;
+                this.Close();
+            }
+            else
+            {
+                MessageBox.Show("Not a dfa.", "Error");
+            }
+        }
+
+        public static bool isDFA(AutomatonCore automatonCore)
+        {
+            List<char> symbols = new List<char>();
+            List<char> foundSymbols = new List<char>();
+            bool isFirst = true;
+
+            foreach (AutomatonNodeCore node in automatonCore.nodes)
+            {
+                if (isFirst) 
+                {
+                    isFirst = false;
+                    foreach (AutomatonTransition automationTransition in node.children)//Fill symbol list
+                    {
+                        symbols.AddRange(automationTransition.acceptedSymbols);
+                    }
+
+                    if (containsDuplicate(symbols)) //Look for duplicates
+                        return false;
+                }
+                else
+                {
+                    foreach (AutomatonTransition automationTransition in node.children)//Fill foundsymbols, check for new ones
+                    {
+                        foreach (char c in automationTransition.acceptedSymbols)
+                        {
+                            if (symbols.Contains(c))
+                                foundSymbols.Add(c);
+                            else
+                                return false;
+                        }
+                    }
+
+                    if (containsDuplicate(foundSymbols)) //Check for duplicates
+                        return false;
+
+                    if (foundSymbols.Count != symbols.Count) //Check whether they are all used
+                        return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool containsDuplicate(List<char> list)
+        {
+            Dictionary<char, int> item2ItemCount = list.GroupBy(item => item).ToDictionary(x => x.Key, x => x.Count()); 
+            foreach (KeyValuePair<char, int> item in item2ItemCount)
+            {
+                if (item.Value > 1)
+                    return true;
+            }
+            return false;
+        }
+
+        private void button1_KeyUp(object sender, KeyEventArgs e)
+        {
+            OnKeyUp(e);
         }
     }
 }
