@@ -14,6 +14,9 @@ namespace FormeleMethodenPracticum
         private List<string> endSymbols;
         private List<ProductLine> productionLines = new List<ProductLine>();
 
+        public string partToFill = "";
+        public bool filling = false;
+
         public RegularGrammar()
         {
         }
@@ -95,6 +98,140 @@ namespace FormeleMethodenPracticum
         //    return transitions;
         //}
 
+        public string processGrammar(string input)
+        {
+            string output = "";
+            switch (partToFill)
+            {
+                case "SYMBOLS":
+                    List<string> symbols = new List<string>();
+
+                    string[] parts = input.Split(',');
+                    for (int i = 0; i < parts.Length; i++)
+                    {
+                        string symbol = parts[i];
+                        string[] symbollist = symbol.Split(' ');
+                        if (symbollist.Length == 1)
+                            symbol = symbollist[0];
+                        else if (symbollist.Length == 2)
+                            symbol = symbollist[1];
+                        symbols.Add(symbol);
+                    }
+                    output = "Type the alphabet letters. \n";
+                    output += "Example: a, b \n";
+                    partToFill = "ALPHABET";
+                    fillSymbols(symbols);
+                    break;
+                case "ALPHABET":
+                    List<string> letters = new List<string>();
+
+                    parts = input.Split(',');
+                    for (int i = 0; i < parts.Length; i++)
+                    {
+                        string letter = parts[i];
+                        string[] letterlist = letter.Split(' ');
+                        if (letterlist.Length == 1)
+                            letter = letterlist[0];
+                        else if (letterlist.Length == 2)
+                            letter = letterlist[1];
+                        letters.Add(letter);
+                    }
+                    output = "Type the ProductLines to add them in the list \n";
+                    output += "Example: A, a, B \n";
+                    output += "Type 'end' to end the list \n";
+                    partToFill = "PRODUCTLINES";
+                    fillAlphabet(letters);
+                    break;
+                case "PRODUCTLINES":
+
+                    parts = input.Split(',');
+
+                    if (parts[0].ToUpper() == "END")
+                    {
+                        output = "Type the StartSymbol \n";
+                        output += "Example: A \n";
+                        partToFill = "STARTSYMBOL";
+                    }
+                    else
+                    {
+                        parts = input.Split(',');
+                        if (parts.Length == 3)
+                        {
+                            string startSymbol = "";
+                            string alphabet = "";
+                            string endSymbol = "";
+
+                            for (int i = 0; i < parts.Length; i++)
+                            {
+                                string letter = parts[i];
+                                string[] letterlist = letter.Split(' ');
+                                int index = 0;
+                                if (letterlist.Length == 1)
+                                    index = 0;
+                                else if (letterlist.Length == 2)
+                                    index = 1;
+
+                                switch (i)
+                                {
+                                    case 0:
+                                        startSymbol = letterlist[index];
+                                        break;
+                                    case 1:
+                                        alphabet = letterlist[index];
+                                        break;
+                                    case 2:
+                                        endSymbol = letterlist[index];
+                                        break;
+                                }
+                            }
+                            if (containsSymbol(startSymbol) && containsSymbol(endSymbol) && containsLetter(alphabet))
+                            {
+                                ProductLine productLine = new ProductLine(startSymbol, alphabet, endSymbol);
+                                addProductionLine(productLine);
+                            }
+                            else
+                            {
+                                output = "The given values are not available in the grammar \n";
+                            }
+                        }
+                    }
+                    break;
+                case "STARTSYMBOL":
+                    parts = input.Split(' ');
+                    if (containsSymbol(parts[0]))
+                    {
+                        fillStartSymbol(parts[0]);
+                        partToFill = "ENDSYMBOLS";
+                        output = "Type the EndSymbols \n";
+                        output += "Example: B,C \n";
+                    }
+                    break;
+                case "ENDSYMBOLS":
+                    List<string> endsymbols = new List<string>();
+
+                    parts = input.Split(',');
+                    for (int i = 0; i < parts.Length; i++)
+                    {
+                        string symbol = parts[i];
+                        string[] symbollist = symbol.Split(' ');
+                        if (symbollist.Length == 1)
+                            symbol = symbollist[0];
+                        else if (symbollist.Length == 2)
+                            symbol = symbollist[1];
+                        endsymbols.Add(symbol);
+                    }
+                    fillEndSymbols(endsymbols);
+
+                    partToFill = "";
+                    filling = false;
+                    output = "Grammar filled \n";
+
+                    break;
+            }
+
+            return output;
+        }
+
         public string toString()
         {
             if (alphabet.Count == 0 || symbols.Count == 0 || productionLines.Count == 0)
@@ -130,7 +267,7 @@ namespace FormeleMethodenPracticum
                 if (i != productionLines.Count - 1)
                     description += ", ";
             }
-            description += "}\n";
+            description += "}";
 
             return description;
         }

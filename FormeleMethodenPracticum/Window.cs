@@ -26,8 +26,6 @@ namespace FormeleMethodenPracticum
         }
 
         RegularGrammar regularGrammar;
-        string partToFill = "";
-        Boolean grammar = false;
 
         public Window()
         {
@@ -85,9 +83,9 @@ namespace FormeleMethodenPracticum
 
         private void processInput()
         {
-            if (grammar == true)
+            if (Window.INSTANCE.regularGrammar != null && Window.INSTANCE.regularGrammar.filling == true)
             {
-                processGrammar();
+                Write( Window.INSTANCE.regularGrammar.processGrammar(inputTextBox.Text));
             }
             else
             {
@@ -98,152 +96,6 @@ namespace FormeleMethodenPracticum
                 if(inputCommand != null)
                     inputCommand.Execute(inputTextBox.Text.Substring(parts[0].Length).Trim());
             }
-        }
-
-        private void processGrammar()
-        {
-            switch (partToFill)
-            {
-                case "SYMBOLS":
-                    List<string> symbols = new List<string>();
-
-                    string[] parts = inputTextBox.Text.Split(',');
-                    for (int i = 0; i < parts.Length; i++)
-                    {
-                        string symbol = parts[i];
-                        string [] symbollist = symbol.Split(' ');
-                        if(symbollist.Length == 1)
-                            symbol = symbollist[0];
-                        else if (symbollist.Length == 2)
-                            symbol = symbollist[1]; 
-                        symbols.Add(symbol);
-                    }
-                    WriteLine("Type the alphabet letters.");
-                    WriteLine("Example: a, b");
-                    partToFill = "ALPHABET";
-                    regularGrammar.fillSymbols(symbols);
-                    break;
-                case "ALPHABET":
-                    List<string> letters = new List<string>();
-
-                    parts = inputTextBox.Text.Split(',');
-                    for (int i = 0; i < parts.Length; i++)
-                    {
-                        string letter = parts[i];
-                        string [] letterlist = letter.Split(' ');
-                        if(letterlist.Length == 1)
-                            letter = letterlist[0];
-                        else if (letterlist.Length == 2)
-                            letter = letterlist[1]; 
-                        letters.Add(letter);
-                    }
-                    WriteLine("Type the ProductLines to add them in the list");
-                    WriteLine("Example: A, a, B");
-                    WriteLine("Type 'end' to end the list");
-                    partToFill = "PRODUCTLINES";
-                    regularGrammar.fillAlphabet(letters);
-                    break;
-                case "PRODUCTLINES":
-
-                    parts = inputTextBox.Text.Split(',');
-
-                    if (parts[0].ToUpper() == "END")
-                    {
-                        WriteLine("Type the StartSymbol");
-                        WriteLine("Example: A");
-                        partToFill = "STARTSYMBOL";
-                    }
-                    else
-                    {
-                        parts = inputTextBox.Text.Split(',');
-                        if (parts.Length == 3)
-                        {
-                            string startSymbol = "";
-                            string alphabet = "";
-                            string endSymbol = "";
-
-                            for (int i = 0; i < parts.Length; i++)
-                            {
-                                string letter = parts[i];
-                                string[] letterlist = letter.Split(' ');
-                                int index = 0;
-                                if (letterlist.Length == 1)
-                                    index = 0;
-                                else if (letterlist.Length == 2)
-                                    index = 1;
-                                
-                                switch (i)
-                                {
-                                    case 0:
-                                        startSymbol = letterlist[index];
-                                        break;
-                                    case 1:
-                                        alphabet = letterlist[index];
-                                        break;
-                                    case 2:
-                                        endSymbol = letterlist[index];
-                                        break;
-                                }
-                            }
-                            if (regularGrammar.containsSymbol(startSymbol) && regularGrammar.containsSymbol(endSymbol) && regularGrammar.containsLetter(alphabet))
-                            {
-                                ProductLine productLine = new ProductLine(startSymbol, alphabet, endSymbol);
-                                regularGrammar.addProductionLine(productLine);
-                            }
-                            else
-                            {
-                                WriteLine("The given values are not available in the grammar");
-                            }
-                        }
-                    }
-                    break;
-                case "STARTSYMBOL":
-                    parts = inputTextBox.Text.Split(' ');
-                    if (regularGrammar.containsSymbol(parts[0]))
-                    {
-                        regularGrammar.fillStartSymbol(parts[0]);
-                        partToFill = "ENDSYMBOLS";
-                        WriteLine("Type the EndSymbols");
-                        WriteLine("Example: B,C");
-                    }
-                    break;
-                case "ENDSYMBOLS":
-                    List<string> endsymbols = new List<string>();
-
-                    parts = inputTextBox.Text.Split(',');
-                    for (int i = 0; i < parts.Length; i++)
-                    {
-                        string symbol = parts[i];
-                        string[] symbollist = symbol.Split(' ');
-                        if (symbollist.Length == 1)
-                            symbol = symbollist[0];
-                        else if (symbollist.Length == 2)
-                            symbol = symbollist[1];
-                        endsymbols.Add(symbol);
-                    }
-                    regularGrammar.fillEndSymbols(endsymbols);
-                    
-                    partToFill = "";
-                    grammar = false;
-                    WriteLine("Grammar filled");
-
-                    break;
-                case "REGEX":
-                    WriteLine("Ik ben de regex");
-                    WriteLine("Vrees mij");
-                    break;
-                case "EXIT":
-                    Program.Terminate();
-                    break;
-            }
-            
-            /*grammar = true;
-            List<string> symbols = new List<string>() { "S", "A", "B" };
-            List<string> alphabet = new List<string>() { "a", "b" };
-            List<ProductLine> productLines = new List<ProductLine>() {  new ProductLine("S", "a", "A"), new ProductLine("A", "b", "B"), 
-                                                                                new ProductLine("A", "a", "S")};
-            RegularGrammar gram = new RegularGrammar(symbols, alphabet, productLines, "s");
-            Write(gram.toString());*/
         }
 
         /// List of commands.
@@ -299,8 +151,8 @@ namespace FormeleMethodenPracticum
                         delegate(string paramaters)
                         {
                             Window.INSTANCE.regularGrammar = new RegularGrammar();
-                            Window.INSTANCE.partToFill = "SYMBOLS";
-                            Window.INSTANCE.grammar = true;
+                            Window.INSTANCE.regularGrammar.partToFill = "SYMBOLS";
+                            Window.INSTANCE.regularGrammar.filling = true;
                             Window.INSTANCE.WriteLine("Type the symbols.");
                             Window.INSTANCE.WriteLine("Example: A, B");
                         }));
