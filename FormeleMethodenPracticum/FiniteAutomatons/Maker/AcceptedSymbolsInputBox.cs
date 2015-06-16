@@ -34,27 +34,30 @@ namespace FormeleMethodenPracticum.FiniteAutomatons.Maker
 
         private void finalize()
         {
-            if (textBox1.Text == "")
-                return;
-
-            string[] parts = textBox1.Text.Trim().Split(',');
-            foreach (string str in parts)
+            if (textBox1.Text != "")
             {
-                if (char.IsLetter(str, 0))
+                string[] parts = textBox1.Text.Trim().Split(',');
+                foreach (string str in parts)
                 {
-                    foreach (AutomatonTransition automatonTransition in automatonTransitions)
+                    if (str == "")
+                        continue;
+
+                    if (char.IsLetter(str, 0) || char.IsNumber(str, 0))
                     {
-                        automatonTransition.acceptedSymbols.Add(str[0]);
+                        foreach (AutomatonTransition automatonTransition in automatonTransitions)
+                        {
+                            automatonTransition.acceptedSymbols.Add(str[0]);
+                        }
                     }
-                }
-                else
-                {
-                    foreach (AutomatonTransition automatonTransition in automatonTransitions)
+                    else
                     {
-                        automatonTransition.acceptedSymbols.Clear();
+                        foreach (AutomatonTransition automatonTransition in automatonTransitions)
+                        {
+                            automatonTransition.acceptedSymbols.Clear();
+                        }
+                        MessageBox.Show("Your string was not accepted, please remove the transition and try again.", "Error");
+                        break;
                     }
-                    MessageBox.Show("Your string was not accepted, please remove the transition and try again.", "Error");
-                    break;
                 }
             }
             this.Close();

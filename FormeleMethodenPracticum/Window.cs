@@ -172,7 +172,18 @@ namespace FormeleMethodenPracticum
                      delegate(string paramaters)
                      {
                          if (Window.INSTANCE.lastProcessedResult is AutomatonCore)
-                             Window.INSTANCE.WriteLine("Was the previous automaton deterministic?: " + ((!(Window.INSTANCE.lastProcessedResult as AutomatonCore).nondeterministic) ? "true" : (AutomatonMaker.isDFA(Window.INSTANCE.lastProcessedResult as AutomatonCore) ? "true" : "false")));
+                             Window.INSTANCE.WriteLine("Was the previous automaton deterministic?: " + (AutomatonMaker.isDFA(Window.INSTANCE.lastProcessedResult as AutomatonCore) ? "true" : "false"));
+                         else
+                             Window.INSTANCE.WriteLine("The previous result was not an automaton.");//TODO: Check for other needs
+                     }));
+                CommandsList.Add(new Command("convertPreviousNDFAToDFA",
+                     "ConvertNDFAToDFA",
+                     delegate(string paramaters)
+                     {
+                         if (Window.INSTANCE.lastProcessedResult is AutomatonCore)
+                         {
+                             AutomatonCore a = AutomatonMaker.toDFA(Window.INSTANCE.lastProcessedResult as AutomatonCore);
+                         }
                          else
                              Window.INSTANCE.WriteLine("The previous result was not an automaton.");//TODO: Check for other needs
                      }));

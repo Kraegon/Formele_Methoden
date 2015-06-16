@@ -6,6 +6,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -34,8 +35,15 @@ namespace FormeleMethodenPracticum.FiniteAutomatons.Maker
 
         private void finalize()
         {
-            automatonNodeMaker.Text = textBox1.Text;
-            automatonNodeMaker.createdAutomatonNodeCore.stateName = textBox1.Text;
+            if (Regex.IsMatch(textBox1.Text, @"^[a-zA-Z]$"))
+            {
+                automatonNodeMaker.Text = textBox1.Text;
+                automatonNodeMaker.createdAutomatonNodeCore.stateName = textBox1.Text;
+            }
+            else
+            {
+                MessageBox.Show("Your string was not accepted, please try again.", "Error");
+            }
             this.Close();
         }
     }

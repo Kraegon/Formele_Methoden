@@ -7,6 +7,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -36,7 +37,7 @@ namespace FormeleMethodenPracticum
                 this.Controls.Add(b);
                 createdAutomatonCore.nodes.Add(b.createdAutomatonNodeCore);
             };
-            Timer refreshTimer = new Timer();
+            System.Windows.Forms.Timer refreshTimer = new System.Windows.Forms.Timer();
             refreshTimer.Interval = (int)Math.Round(1000.0f / 30.0f);
             refreshTimer.Tick += delegate
             {
@@ -210,6 +211,30 @@ namespace FormeleMethodenPracticum
 
         private void button1_Click(object sender, EventArgs e)
         {
+            //Remove focus
+            this.ActiveControl = null;
+
+            bool hasBeginNode = false;
+            foreach (var item in createdAutomatonCore.nodes)
+            {
+                if(item.isBeginNode)
+                {
+                    hasBeginNode = true;
+                }
+
+                if (item.stateName == "")
+                {
+                    MessageBox.Show("Not all nodes have a statename.", "Error");
+                    return;
+                }
+            }
+
+            if (!hasBeginNode)
+            {
+                MessageBox.Show("No beginnode.", "Error");
+                return;
+            }
+
             if (createdAutomatonCore.nondeterministic)
             {
                 Window.INSTANCE.lastProcessedResult = createdAutomatonCore;
@@ -228,8 +253,275 @@ namespace FormeleMethodenPracticum
             }
         }
 
+        public static AutomatonCore toDFA(AutomatonCore automatonCore)
+        {
+            //Stop if it's already deterministic
+            if (!automatonCore.nondeterministic)
+                return automatonCore;
+
+            //Once again, stop if it's already deterministic
+            if(isDFA(automatonCore))
+            {
+                automatonCore.nondeterministic = false;
+                return automatonCore;
+            }
+
+            //Add all beginNodes this this list
+            List<AutomatonNodeCore> beginNodes = new List<AutomatonNodeCore>();
+            foreach (AutomatonNodeCore node in automatonCore.nodes)
+	        {
+                if (node.isBeginNode)
+                    beginNodes.Add(node);
+	        }
+
+            ////Find all characters of this alphabet and add them to this hashset
+            //HashSet<char> alphabet = new HashSet<char>();
+            //foreach (AutomatonNodeCore node in automatonCore.nodes)
+            //{
+            //    foreach (AutomatonTransition trans in node.children)
+            //    {
+            //        foreach (char character in trans.acceptedSymbols)
+            //        {
+            //            alphabet.Add(character);
+            //        }
+            //    }
+            //}
+
+            //Magic TODO: Add comments
+            //      statename         alphabet  destination-states
+            Dictionary<string, Dictionary<char, HashSet<string>>> states = new Dictionary<string, Dictionary<char, HashSet<string>>>();
+            List<AutomatonNodeCore> iterationNodes = new List<AutomatonNodeCore>();
+            iterationNodes.AddRange(beginNodes);
+
+            addChildrenOfBeginNodes(iterationNodes, states);
+            makeNewStatesAfterBeginNodes(iterationNodes, states);
+
+            int amountOfStateNames = 0;
+            while(amountOfStateNames != iterationNodes.Count)
+            {
+                amountOfStateNames = iterationNodes.Count;
+
+                addChildrenofNonBeginNodes(automatonCore.nodes, states);
+                makeNewStatesAfterBeginNodes(iterationNodes, states);//TODO: Change name
+            }
+            
+            return statesToAutomatonCore(automatonCore.nodes, states);
+        }
+
+        private static AutomatonCore statesToAutomatonCore(List<AutomatonNodeCore> originalAutomatonNodes, Dictionary<string, Dictionary<char, HashSet<string>>> states)
+        {
+            AutomatonCore automatonCore = new AutomatonCore(true);
+            foreach (KeyValuePair<string, Dictionary<char, HashSet<string>>> state in states)
+            {
+                AutomatonNodeCore node = new AutomatonNodeCore();
+                foreach (AutomatonNodeCore ogNode in originalAutomatonNodes)
+                {
+                    if (ogNode.isBeginNode)
+                        node.isBeginNode = true;
+
+                    if (ogNode.isEndNode)
+                        node.isEndNode = true;
+                }
+
+                node.stateName = state.Key;
+                automatonCore.nodes.Add(node);
+            }
+
+            foreach (AutomatonNodeCore node in automatonCore.nodes)
+            {
+                Dictionary<char, HashSet<string>> state = states[node.stateName];
+                
+                foreach (KeyValuePair<char, HashSet<string>> alphaStatePair in state)
+                {
+                    foreach (string childStateName in alphaStatePair.Value)
+	                {
+                        foreach (AutomatonNodeCore node2 in automatonCore.nodes)
+                        {
+                            if (node2.stateName != childStateName)
+                                continue;
+
+                            bool linkAlreadyExisted = false;
+                            foreach (AutomatonTransition tr1 in node.children)
+                            {
+                                if(tr1.automatonNode == node2)
+                                {
+                                    tr1.acceptedSymbols.Add(alphaStatePair.Key);
+
+                                    foreach (AutomatonTransition tr2 in node2.parents)
+                                    {
+                                        if (tr2.automatonNode == node)
+                                        {
+                                            tr2.acceptedSymbols.Add(alphaStatePair.Key);
+                                        }
+                                        break;
+                                    }
+
+                                    linkAlreadyExisted = true;
+                                }
+                            }
+
+                            if (!linkAlreadyExisted)
+                            {
+                                AutomatonTransition trans1 = new AutomatonTransition(node2);
+                                trans1.acceptedSymbols.Add(alphaStatePair.Key);
+                                node.children.Add(trans1);
+
+                                AutomatonTransition trans2 = new AutomatonTransition(node);
+                                trans2.acceptedSymbols.Add(alphaStatePair.Key);
+                                node2.parents.Add(trans2);
+                            }
+                            break;
+                            //TODO: Check
+                        }  
+	                }
+                }
+            }
+
+            return automatonCore;
+        }
+
+        private static void addChildrenofNonBeginNodes(List<AutomatonNodeCore> originalAutomatonNodes, Dictionary<string, Dictionary<char, HashSet<string>>> states)
+        {
+            foreach (KeyValuePair<string, Dictionary<char, HashSet<string>>> node in states)
+            {
+                if (!states.ContainsKey(node.Key))
+                    states[node.Key] = new Dictionary<char, HashSet<string>>();
+
+                addChildrenOfNonBeginNodesIterative(originalAutomatonNodes, states, node.Key);
+            }
+        }
+
+        private static void addChildrenOfNonBeginNodesIterative(List<AutomatonNodeCore> originalAutomatonNodes, Dictionary<string, Dictionary<char, HashSet<string>>> states, string stateName)
+        {
+            List<AutomatonNodeCore> origins = new List<AutomatonNodeCore>();
+            string[] originParts = stateName.Split(',');
+            foreach (string originPart in originParts)
+            {
+                foreach (AutomatonNodeCore core in originalAutomatonNodes)
+                {
+                    if (core.stateName == originPart)
+                    {
+                        origins.Add(core);
+                        break;
+                    }
+                }
+            }
+
+            foreach (AutomatonNodeCore origin in origins)
+            {
+                foreach (AutomatonTransition trans in origin.children)
+                {
+                    if (!states.ContainsKey(stateName))
+                        states[stateName] = new Dictionary<char, HashSet<string>>();
+
+                    if (trans.acceptedSymbols.Count > 0)
+                    {
+                        foreach (char alpha in trans.acceptedSymbols)
+                        {
+                            if (!states[stateName].ContainsKey(alpha))
+                                states[stateName][alpha] = new HashSet<string>();
+
+                            states[stateName][alpha].Add(trans.automatonNode.stateName);
+                        }
+                    }
+                    else
+                    {
+                        addChildrenOfNonBeginNodesIterative(new List<AutomatonNodeCore>() {trans.automatonNode}, states, stateName);
+                    }
+                }
+            }
+        }
+
+        private static void makeNewStatesAfterBeginNodes(List<AutomatonNodeCore> iterationNodes, Dictionary<string, Dictionary<char, HashSet<string>>> states)
+        {
+            foreach (KeyValuePair<string, Dictionary<char, HashSet<string>>> state in states)
+            {
+                SortedSet<string> newStateParts = new SortedSet<string>();
+                string newStateName = "";
+
+                foreach (KeyValuePair<char, HashSet<string>> stateNameParts in state.Value)
+	            {
+                    foreach (string part in stateNameParts.Value)
+                    {
+                        newStateParts.Add(part);
+                    }
+
+                    foreach (string part in newStateParts)
+                    {
+                        if(newStateName != "")
+                            newStateName += ",";
+                        newStateName += part;
+                    }
+
+                    bool alreadyExists = false;
+                    foreach (AutomatonNodeCore node in iterationNodes)
+                    {
+                        if (node.stateName == newStateName)
+                        {
+                            alreadyExists = true;
+                            break;
+                        }
+                    }
+
+                    if (!alreadyExists)
+                    {
+                        AutomatonNodeCore newCore = new AutomatonNodeCore();
+                        newCore.stateName = newStateName;
+                        iterationNodes.Add(newCore);
+                    }
+
+                    newStateName = "";
+                    newStateParts.Clear();
+	            }
+            }
+
+            foreach (AutomatonNodeCore node in iterationNodes)
+            {
+                if (!states.ContainsKey(node.stateName))
+                    states[node.stateName] = new Dictionary<char, HashSet<string>>();
+            }
+        }
+
+        private static void addChildrenOfBeginNodes(List<AutomatonNodeCore> iterationNodes, Dictionary<string, Dictionary<char, HashSet<string>>> states)
+        {
+            foreach (AutomatonNodeCore node in iterationNodes)
+	        {
+                if(!states.ContainsKey(node.stateName))
+                    states[node.stateName] = new Dictionary<char, HashSet<string>>();
+
+                addChildrenOfBeginNodesIterative(node, states, node.stateName);
+	        }
+        }
+
+        private static void addChildrenOfBeginNodesIterative(AutomatonNodeCore origin, Dictionary<string, Dictionary<char, HashSet<string>>> states, string stateName)
+        {
+            foreach (AutomatonTransition trans in origin.children)
+            {
+                if (!states.ContainsKey(stateName))
+                    states[stateName] = new Dictionary<char, HashSet<string>>();
+
+                if (trans.acceptedSymbols.Count > 0)
+                {
+                    foreach (char alpha in trans.acceptedSymbols)
+                    {
+                        if (!states[stateName].ContainsKey(alpha))
+                            states[stateName][alpha] = new HashSet<string>();
+
+                        states[stateName][alpha].Add(trans.automatonNode.stateName);
+                    }
+                }
+                else
+                {
+                    addChildrenOfBeginNodesIterative(trans.automatonNode, states, stateName);
+                }
+            }
+        }
+
         public static bool isDFA(AutomatonCore automatonCore)
         {
+            if (!automatonCore.nondeterministic)
+                return true;
+
             List<char> symbols = new List<char>();
             List<char> foundSymbols = new List<char>();
             bool isFirst = true;
