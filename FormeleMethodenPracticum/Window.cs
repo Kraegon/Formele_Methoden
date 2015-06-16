@@ -240,7 +240,8 @@ namespace FormeleMethodenPracticum
                         {
                             if (Window.INSTANCE.lastProcessedResult is AutomatonCore && !(Window.INSTANCE.lastProcessedResult as AutomatonCore).nondeterministic)
                             {
-                                //Window.INSTANCE.lastProcessedResult;
+                                Window.INSTANCE.lastProcessedResult = AutomatonMaker.reverseDFA(Window.INSTANCE.lastProcessedResult as AutomatonCore);
+                                Window.INSTANCE.WriteLine("DFA converted to NDFA");
                             }
                         }));
                 CommandsList.Add(new Command("DFAMinimize",

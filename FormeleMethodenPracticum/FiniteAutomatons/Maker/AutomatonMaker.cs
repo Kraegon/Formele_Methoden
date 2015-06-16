@@ -265,6 +265,8 @@ namespace FormeleMethodenPracticum
 
                     if (foundSymbols.Count != symbols.Count) //Check whether they are all used
                         return false;
+
+                    foundSymbols = new List<char>();
                 }
             }
 
@@ -280,6 +282,30 @@ namespace FormeleMethodenPracticum
                     return true;
             }
             return false;
+        }
+
+        public static AutomatonCore reverseDFA(AutomatonCore automatonCore)
+        {
+            AutomatonCore reverse = new AutomatonCore(true);
+
+            //Fill in the nodes and BeginStates become Endstates and Endstates become Beginstates
+            foreach(AutomatonNodeCore node in automatonCore.nodes)
+            {
+                AutomatonNodeCore newNode = new AutomatonNodeCore();
+                newNode.stateName = node.stateName;
+
+                if (node.isBeginNode)
+                    newNode.isEndNode = true;
+                if (node.isEndNode)
+                    newNode.isBeginNode = true;
+
+                //Reverse arrows
+                newNode.parents = node.children;
+                newNode.children = node.parents;
+
+                reverse.nodes.Add(newNode);
+            }
+            return reverse;
         }
 
         private void button1_KeyUp(object sender, KeyEventArgs e)
