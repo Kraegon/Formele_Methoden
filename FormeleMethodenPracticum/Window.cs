@@ -1,4 +1,5 @@
 ﻿using FormeleMethodenPracticum.FiniteAutomatons;
+using FormeleMethodenPracticum.FiniteAutomatons.Visual;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -232,6 +233,8 @@ namespace FormeleMethodenPracticum
                             if (Window.INSTANCE.lastProcessedResult is AutomatonCore)
                             {
                                 //Window.INSTANCE.lastProcessedResult;
+                                AutomatonTable table = new AutomatonTable(Window.INSTANCE.lastProcessedResult as AutomatonCore);
+                                table.ShowDialog();
                             }
                         }));
                 CommandsList.Add(new Command("DFAReverse",

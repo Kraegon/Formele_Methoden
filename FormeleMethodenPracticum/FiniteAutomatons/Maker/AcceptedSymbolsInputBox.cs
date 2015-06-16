@@ -40,7 +40,7 @@ namespace FormeleMethodenPracticum.FiniteAutomatons.Maker
             string[] parts = textBox1.Text.Trim().Split(',');
             foreach (string str in parts)
             {
-                if (char.IsLetter(str, 0))
+                if (char.IsLetter(str, 0) || char.IsNumber(str, 0))
                 {
                     foreach (AutomatonTransition automatonTransition in automatonTransitions)
                     {
