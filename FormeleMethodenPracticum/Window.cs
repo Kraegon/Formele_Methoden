@@ -212,7 +212,44 @@ namespace FormeleMethodenPracticum
                         {
                             if (Window.INSTANCE.regularGrammar != null)
                             {
-                                Window.INSTANCE.regularGrammar.changeToNDFA();
+                               Window.INSTANCE.lastProcessedResult = Window.INSTANCE.regularGrammar.changeToNDFA();
+                               Window.INSTANCE.WriteLine("The NDFA has made from the grammar");
+                            }
+                        }));
+                CommandsList.Add(new Command("ShowAutomaton",
+                        "Shows the automaton in a table",
+                        delegate(string paramaters)
+                        {
+                            if (Window.INSTANCE.lastProcessedResult != null)
+                            {
+                                //Window.INSTANCE.lastProcessedResult;
+                            }
+                        }));
+                CommandsList.Add(new Command("DFAReverse",
+                        "Reverse the DFA, new Automaton will be NDFA",
+                        delegate(string paramaters)
+                        {
+                            if (Window.INSTANCE.lastProcessedResult != null)
+                            {
+                                //Window.INSTANCE.lastProcessedResult;
+                            }
+                        }));
+                CommandsList.Add(new Command("DFAMinimize",
+                        "Minimize the DFA",
+                        delegate(string paramaters)
+                        {
+                            if (Window.INSTANCE.lastProcessedResult != null)
+                            {
+                                //Window.INSTANCE.lastProcessedResult;
+                            }
+                        }));
+                CommandsList.Add(new Command("AutomatonToGrammar",
+                        "Convert Automaton to Grammar",
+                        delegate(string paramaters)
+                        {
+                            if (Window.INSTANCE.lastProcessedResult != null)
+                            {
+                                //Window.INSTANCE.lastProcessedResult;
                             }
                         }));
                 CommandsList.Add(new Command("Help",
