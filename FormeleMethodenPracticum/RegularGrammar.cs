@@ -12,48 +12,23 @@ namespace FormeleMethodenPracticum
     {
         private List<string> alphabet;
         private List<string> symbols;
-        private string startSymbol;
+        private List<string> startSymbols;
         private List<string> endSymbols;
         private List<ProductLine> productionLines = new List<ProductLine>();
 
-        public string partToFill = "";
+        private string partToFill = "";
         public bool filling = false;
 
         public RegularGrammar()
         {
+            filling = true;
+            partToFill = "SYMBOLS";
         }
 
-        public RegularGrammar(List<string> N, List<string> E, List<ProductLine> P, string S)
+        public RegularGrammar(AutomatonCore automaton)
         {
-            symbols = N;
-            alphabet = E;
-            productionLines = P;
-            startSymbol = S;
-        }
-
-        public void fillAlphabet(List<string> E)
-        {
-            alphabet = E;
-        }
-
-        public void fillSymbols(List<string> N)
-        {
-            symbols = N;
-        }
-
-        public void fillEndSymbols(List<string> N)
-        {
-            endSymbols = N;
-        }
-
-        public void addProductionLine(ProductLine P)
-        {
-            productionLines.Add(P);
-        }
-
-        public void fillStartSymbol(string S)
-        {
-            startSymbol = S;
+            filling = true;
+            //Convert automaton to grammar
         }
 
         public bool containsSymbol(string Sym)
@@ -74,7 +49,7 @@ namespace FormeleMethodenPracticum
             {
                 AutomatonNodeCore ac = new AutomatonNodeCore();
                 ac.stateName = symbol;
-                if(symbol == startSymbol)
+                if(startSymbols.Contains(symbol))
                 {
                     ac.isBeginNode = true;
                     ac.isEndNode = false;
@@ -180,7 +155,7 @@ namespace FormeleMethodenPracticum
                     output = "Type the alphabet letters. \n";
                     output += "Example: a, b \n";
                     partToFill = "ALPHABET";
-                    fillSymbols(symbols);
+                    this.symbols = symbols;
                     break;
                 case "ALPHABET":
                     List<string> letters = new List<string>();
@@ -200,7 +175,7 @@ namespace FormeleMethodenPracticum
                     output += "Example: A, a, B \n";
                     output += "Type 'end' to end the list \n";
                     partToFill = "PRODUCTLINES";
-                    fillAlphabet(letters);
+                    this.alphabet = letters;
                     break;
                 case "PRODUCTLINES":
 
@@ -208,8 +183,8 @@ namespace FormeleMethodenPracticum
 
                     if (parts[0].ToUpper() == "END")
                     {
-                        output = "Type the StartSymbol \n";
-                        output += "Example: A \n";
+                        output = "Type the StartSymbols \n";
+                        output += "Example: A,C \n";
                         partToFill = "STARTSYMBOL";
                     }
                     else
@@ -218,7 +193,7 @@ namespace FormeleMethodenPracticum
                         if (parts.Length == 3)
                         {
                             string startSymbol = "";
-                            string alphabet = "";
+                            string transitionLetter = "";
                             string endSymbol = "";
 
                             for (int i = 0; i < parts.Length; i++)
@@ -237,17 +212,17 @@ namespace FormeleMethodenPracticum
                                         startSymbol = letterlist[index];
                                         break;
                                     case 1:
-                                        alphabet = letterlist[index];
+                                        transitionLetter = letterlist[index];
                                         break;
                                     case 2:
                                         endSymbol = letterlist[index];
                                         break;
                                 }
                             }
-                            if (containsSymbol(startSymbol) && containsSymbol(endSymbol) && containsLetter(alphabet))
+                            if (containsSymbol(startSymbol) && containsSymbol(endSymbol) && containsLetter(transitionLetter))
                             {
-                                ProductLine productLine = new ProductLine(startSymbol, alphabet, endSymbol);
-                                addProductionLine(productLine);
+                                ProductLine productLine = new ProductLine(startSymbol, transitionLetter, endSymbol);
+                                productionLines.Add(productLine);
                             }
                             else
                             {
@@ -257,14 +232,26 @@ namespace FormeleMethodenPracticum
                     }
                     break;
                 case "STARTSYMBOL":
-                    parts = input.Split(' ');
-                    if (containsSymbol(parts[0]))
+                    List<string> startsymbols = new List<string>();
+
+                    parts = input.Split(',');
+                    for (int i = 0; i < parts.Length; i++)
                     {
-                        fillStartSymbol(parts[0]);
-                        partToFill = "ENDSYMBOLS";
-                        output = "Type the EndSymbols \n";
-                        output += "Example: B,C \n";
+                        if (containsSymbol(parts[i]))
+                        {
+                            string symbol = parts[i];
+                            string[] symbollist = symbol.Split(' ');
+                            if (symbollist.Length == 1)
+                                symbol = symbollist[0];
+                            else if (symbollist.Length == 2)
+                                symbol = symbollist[1];
+                            startsymbols.Add(symbol);
+                        }
                     }
+                    this.startSymbols = startsymbols;
+                    partToFill = "ENDSYMBOLS";
+                    output = "Type the EndSymbols \n";
+                    output += "Example: B,C \n";
                     break;
                 case "ENDSYMBOLS":
                     List<string> endsymbols = new List<string>();
@@ -272,15 +259,18 @@ namespace FormeleMethodenPracticum
                     parts = input.Split(',');
                     for (int i = 0; i < parts.Length; i++)
                     {
-                        string symbol = parts[i];
-                        string[] symbollist = symbol.Split(' ');
-                        if (symbollist.Length == 1)
-                            symbol = symbollist[0];
-                        else if (symbollist.Length == 2)
-                            symbol = symbollist[1];
-                        endsymbols.Add(symbol);
+                        if (containsSymbol(parts[i]))
+                        {
+                            string symbol = parts[i];
+                            string[] symbollist = symbol.Split(' ');
+                            if (symbollist.Length == 1)
+                                symbol = symbollist[0];
+                            else if (symbollist.Length == 2)
+                                symbol = symbollist[1];
+                            endsymbols.Add(symbol);
+                        }
                     }
-                    fillEndSymbols(endsymbols);
+                    this.endSymbols = endsymbols;
 
                     partToFill = "";
                     filling = false;
@@ -325,6 +315,26 @@ namespace FormeleMethodenPracticum
             {
                 description += productionLines[i].toString();
                 if (i != productionLines.Count - 1)
+                    description += ", ";
+            }
+            description += "}\n";
+
+            //StartSymbols
+            description += "Startsymbols = {";
+            for (int i = 0; i < startSymbols.Count; i++)
+            {
+                description += startSymbols[i];
+                if (i != startSymbols.Count - 1)
+                    description += ", ";
+            }
+            description += "}\n";
+            
+            //EndSymbols
+            description += "Endsymbols = {";
+            for (int i = 0; i < endSymbols.Count; i++)
+            {
+                description += endSymbols[i];
+                if (i != endSymbols.Count - 1)
                     description += ", ";
             }
             description += "}";
