@@ -1,14 +1,14 @@
-﻿using System;
+﻿using FormeleMethodenPracticum.FiniteAutomatons;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
-using FormeleMethodenPracticum.Model;
 
 namespace FormeleMethodenPracticum
 {
@@ -27,9 +27,8 @@ namespace FormeleMethodenPracticum
             }
         }
 
-        RegularGrammar regularGrammar;
-        string partToFill = "";
-        Boolean grammar = false;
+        public object lastProcessedResult;
+        //RegularGrammar regularGrammar;
 
         public Window()
         {
@@ -87,9 +86,9 @@ namespace FormeleMethodenPracticum
 
         private void processInput()
         {
-            if (grammar == true)
+            if (Window.INSTANCE.lastProcessedResult is RegularGrammar && (Window.INSTANCE.lastProcessedResult as RegularGrammar).filling == true)
             {
-                processGrammar();
+                Write((Window.INSTANCE.lastProcessedResult as RegularGrammar).processGrammar(inputTextBox.Text));
             }
             else
             {
@@ -100,131 +99,6 @@ namespace FormeleMethodenPracticum
                 if(inputCommand != null)
                     inputCommand.Execute(inputTextBox.Text.Substring(parts[0].Length).Trim());
             }
-        }
-
-        private void processGrammar()
-        {
-            switch (partToFill)
-            {
-                case "SYMBOLS":
-                    List<string> symbols = new List<string>();
-
-                    string[] parts = inputTextBox.Text.Split(',');
-                    for (int i = 0; i < parts.Length; i++)
-                    {
-                        string symbol = parts[i];
-                        string [] symbollist = symbol.Split(' ');
-                        if(symbollist.Length == 1)
-                            symbol = symbollist[0];
-                        else if (symbollist.Length == 2)
-                            symbol = symbollist[1]; 
-                        symbols.Add(symbol);
-                    }
-                    WriteLine("Type the alphabet letters.");
-                    WriteLine("Example: a, b");
-                    partToFill = "ALPHABET";
-                    regularGrammar.fillSymbols(symbols);
-                    break;
-                case "ALPHABET":
-                    List<string> letters = new List<string>();
-
-                    parts = inputTextBox.Text.Split(',');
-                    for (int i = 0; i < parts.Length; i++)
-                    {
-                        string letter = parts[i];
-                        string [] letterlist = letter.Split(' ');
-                        if(letterlist.Length == 1)
-                            letter = letterlist[0];
-                        else if (letterlist.Length == 2)
-                            letter = letterlist[1]; 
-                        letters.Add(letter);
-                    }
-                    WriteLine("Type the ProductLines to add them in the list");
-                    WriteLine("Example: A, a, B");
-                    WriteLine("Type 'end' to end the list");
-                    partToFill = "PRODUCTLINES";
-                    regularGrammar.fillAlphabet(letters);
-                    break;
-                case "PRODUCTLINES":
-
-                    parts = inputTextBox.Text.Split(',');
-
-                    if (parts[0].ToUpper() == "END")
-                    {
-                        WriteLine("Type the StartSymbol");
-                        WriteLine("Example: A");
-                        partToFill = "STARTSYMBOL";
-                    }
-                    else
-                    {
-                        parts = inputTextBox.Text.Split(',');
-                        if (parts.Length == 3)
-                        {
-                            string startSymbol = "";
-                            string alphabet = "";
-                            string endSymbol = "";
-
-                            for (int i = 0; i < parts.Length; i++)
-                            {
-                                string letter = parts[i];
-                                string[] letterlist = letter.Split(' ');
-                                int index = 0;
-                                if (letterlist.Length == 1)
-                                    index = 0;
-                                else if (letterlist.Length == 2)
-                                    index = 1;
-                                
-                                switch (i)
-                                {
-                                    case 0:
-                                        startSymbol = letterlist[index];
-                                        break;
-                                    case 1:
-                                        alphabet = letterlist[index];
-                                        break;
-                                    case 2:
-                                        endSymbol = letterlist[index];
-                                        break;
-                                }
-                            }
-                            if (regularGrammar.containsSymbol(startSymbol) && regularGrammar.containsSymbol(endSymbol) && regularGrammar.containsLetter(alphabet))
-                            {
-                                ProductLine productLine = new ProductLine(startSymbol, alphabet, endSymbol);
-                                regularGrammar.addProductionLine(productLine);
-                            }
-                            else
-                            {
-                                WriteLine("The given values are not available in the grammar");
-                            }
-                        }
-                    }
-                    break;
-                case "STARTSYMBOL":
-                    parts = inputTextBox.Text.Split(' ');
-                    if (regularGrammar.containsSymbol(parts[0]))
-                    {
-                        regularGrammar.fillStartSymbol(parts[0]);
-                        partToFill = "";
-                        grammar = false;
-                        WriteLine("Grammar filled");
-                    }
-                    break;
-                case "REGEX":
-                    WriteLine("Ik ben de regex");
-                    WriteLine("Vrees mij");
-                    break;
-                case "EXIT":
-                    Program.Terminate();
-                    break;
-            }
-            
-            /*grammar = true;
-            List<string> symbols = new List<string>() { "S", "A", "B" };
-            List<string> alphabet = new List<string>() { "a", "b" };
-            List<ProductLine> productLines = new List<ProductLine>() {  new ProductLine("S", "a", "A"), new ProductLine("A", "b", "B"), 
-                                                                                new ProductLine("A", "a", "S")};
-            RegularGrammar gram = new RegularGrammar(symbols, alphabet, productLines, "s");
-            Write(gram.toString());*/
         }
 
         /// List of commands.
@@ -262,26 +136,62 @@ namespace FormeleMethodenPracticum
 
             public static void Create()
             {
-                #region Add commands
+                #region Add command
                 CommandsList.Add(new Command("DFA",
-                     "Play with DFAs.",
+                     "Play with (N)DFAs.\n" +
+                     "Controls:\n" +
+                     "Leftern Double Click - New Node\n" +
+                     "Rightern Double Click - Remove Node\n" +
+                     "Drag - Move Node\n" +
+                     "Click - Select / Deselect Node\n" +
+                     "Enter when selecting - Make Start Node / Undo Making Start Node\n" +
+                     "Tab Then Selecting - Transition Maker Enabled / Transition Maker Disabled\n" +
+                     "Click When Transition Making - New Transition / Remove Transition\n" +
+                     "Keyup - Assign State Name",
                      delegate(string paramaters)
                      {
-                         FiniteAutomaton.CreateNew(false);
+                         Window.INSTANCE.lastProcessedResult = AutomatonMaker.CreateNew(false);
                      }));
                 CommandsList.Add(new Command("NDFA",
-                        "Play with NDFAs.",
-                        delegate(string paramaters)
-                        {
-                            FiniteAutomaton.CreateNew(true);
-                        }));
+                     "Play with (N)DFAs.\n" +
+                     "Controls:\n" +
+                     "Leftern Double Click - New Node\n" +
+                     "Rightern Double Click - Remove Node\n" +
+                     "Drag - Move Node\n" +
+                     "Click - Select / Deselect Node\n" +
+                     "Enter when selecting - Make Start Node / Undo Making Start Node\n" +
+                     "Tab Then Selecting - Transition Maker Enabled / Transition Maker Disabled\n" +
+                     "Click When Transition Making - New Transition / Remove Transition\n" +
+                     "Keyup - Assign State Name",
+                     delegate(string paramaters)
+                     {
+                         Window.INSTANCE.lastProcessedResult = AutomatonMaker.CreateNew(true);
+                     }));
+                CommandsList.Add(new Command("isPreviousItemDFA",
+                     "Check whether the last made object is a DFA",
+                     delegate(string paramaters)
+                     {
+                         if (Window.INSTANCE.lastProcessedResult is AutomatonCore)
+                             Window.INSTANCE.WriteLine("Was the previous automaton deterministic?: " + ((!(Window.INSTANCE.lastProcessedResult as AutomatonCore).nondeterministic) ? "true" : (AutomatonMaker.isDFA(Window.INSTANCE.lastProcessedResult as AutomatonCore) ? "true" : "false")));
+                         else
+                             Window.INSTANCE.WriteLine("The previous result was not an automaton.");//TODO: Check for other needs
+                     }));
+                CommandsList.Add(new Command("ItemIs",
+                     "Prints what the saved item is",
+                     delegate(string paramaters)
+                     {
+                         if (Window.INSTANCE.lastProcessedResult is AutomatonCore)
+                             Window.INSTANCE.WriteLine("Result is " + ((Window.INSTANCE.lastProcessedResult as AutomatonCore).nondeterministic ? "NDFA" : "DFA"));
+                         else if (Window.INSTANCE.lastProcessedResult is RegularGrammar)
+                             Window.INSTANCE.WriteLine("Result is Grammar");
+                         else if(Window.INSTANCE.lastProcessedResult == null)
+                             Window.INSTANCE.WriteLine("Result is empty");
+                     }));
                 CommandsList.Add(new Command("Grammar",
                         "Play with formal grammar.",
                         delegate(string paramaters)
                         {
-                            Window.INSTANCE.regularGrammar = new RegularGrammar();
-                            Window.INSTANCE.partToFill = "SYMBOLS";
-                            Window.INSTANCE.grammar = true;
+                            Window.INSTANCE.lastProcessedResult = new RegularGrammar();
                             Window.INSTANCE.WriteLine("Type the symbols.");
                             Window.INSTANCE.WriteLine("Example: A, B");
                         }));
@@ -290,7 +200,7 @@ namespace FormeleMethodenPracticum
                         delegate(string paramaters)
                         {
                             Window.INSTANCE.WriteLine("Params: " + paramaters);
-                            Regex.ParseRegex(paramaters);
+                            //Regex.ParseRegex(paramaters);
                         }));
                 CommandsList.Add(new Command("Exit",
                        "Quit the program.",
@@ -302,8 +212,56 @@ namespace FormeleMethodenPracticum
                         "Do grammar string thing.",
                         delegate(string paramaters)
                         {
-                            if (Window.INSTANCE.regularGrammar != null)
-                                Window.INSTANCE.WriteLine(Window.INSTANCE.regularGrammar.toString());
+                            if (Window.INSTANCE.lastProcessedResult is RegularGrammar)
+                                Window.INSTANCE.WriteLine((Window.INSTANCE.lastProcessedResult as RegularGrammar).toString());
+                        }));
+                CommandsList.Add(new Command("GrammarToNDFA",
+                        "Convert Grammar to NDFA",
+                        delegate(string paramaters)
+                        {
+                            if (Window.INSTANCE.lastProcessedResult is RegularGrammar)
+                            {
+                                Window.INSTANCE.lastProcessedResult = (Window.INSTANCE.lastProcessedResult as RegularGrammar).changeToNDFA();
+                               Window.INSTANCE.WriteLine("The NDFA has made from the grammar");
+                            }
+                        }));
+                CommandsList.Add(new Command("ShowAutomaton",
+                        "Shows the automaton in a table",
+                        delegate(string paramaters)
+                        {
+                            if (Window.INSTANCE.lastProcessedResult is AutomatonCore)
+                            {
+                                //Window.INSTANCE.lastProcessedResult;
+                            }
+                        }));
+                CommandsList.Add(new Command("DFAReverse",
+                        "Reverse the DFA, new Automaton will be NDFA",
+                        delegate(string paramaters)
+                        {
+                            if (Window.INSTANCE.lastProcessedResult is AutomatonCore && !(Window.INSTANCE.lastProcessedResult as AutomatonCore).nondeterministic)
+                            {
+                                Window.INSTANCE.lastProcessedResult = AutomatonMaker.reverseDFA(Window.INSTANCE.lastProcessedResult as AutomatonCore);
+                                Window.INSTANCE.WriteLine("DFA converted to NDFA");
+                            }
+                        }));
+                CommandsList.Add(new Command("DFAMinimize",
+                        "Minimize the DFA",
+                        delegate(string paramaters)
+                        {
+                            if (Window.INSTANCE.lastProcessedResult is AutomatonCore && !(Window.INSTANCE.lastProcessedResult as AutomatonCore).nondeterministic)
+                            {
+                                //Window.INSTANCE.lastProcessedResult;
+                            }
+                        }));
+                CommandsList.Add(new Command("AutomatonToGrammar",
+                        "Convert Automaton to Grammar",
+                        delegate(string paramaters)
+                        {
+                            if (Window.INSTANCE.lastProcessedResult is AutomatonCore)
+                            {
+                                Window.INSTANCE.lastProcessedResult = new RegularGrammar((Window.INSTANCE.lastProcessedResult as AutomatonCore));
+                                Window.INSTANCE.WriteLine("Automaton converted to Grammar");
+                            }
                         }));
                 CommandsList.Add(new Command("Help",
                         "This help command.",
@@ -312,6 +270,7 @@ namespace FormeleMethodenPracticum
                             foreach(Command c in CommandsList)
                             {
                                 Window.INSTANCE.WriteLine(c.ToString());
+                                Window.INSTANCE.WriteLine("");
                             }
                         }));
                 #endregion
