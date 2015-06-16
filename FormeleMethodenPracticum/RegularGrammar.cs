@@ -14,7 +14,7 @@ namespace FormeleMethodenPracticum
         private List<string> symbols;
         private List<string> startSymbols;
         private List<string> endSymbols;
-        private List<ProductLine> productionLines = new List<ProductLine>();
+        private List<ProductLine> productionLines;
 
         private string partToFill = "";
         public bool filling = false;
@@ -23,12 +23,19 @@ namespace FormeleMethodenPracticum
         {
             filling = true;
             partToFill = "SYMBOLS";
+            productionLines = new List<ProductLine>();
         }
 
         public RegularGrammar(AutomatonCore automaton)
         {
             filling = true;
-            //Convert automaton to grammar
+            symbols = new List<string>();
+            startSymbols = new List<string>();
+            alphabet = new List<string>();
+            endSymbols = new List<string>();
+            productionLines = new List<ProductLine>();
+
+            processAutomaton(automaton);
         }
 
         public bool containsSymbol(string Sym)
@@ -280,6 +287,32 @@ namespace FormeleMethodenPracticum
             }
 
             return output;
+        }
+
+        private void processAutomaton(AutomatonCore automaton)
+        {
+            foreach(AutomatonNodeCore node in automaton.nodes)
+            {
+                symbols.Add(node.stateName);
+                if (node.isBeginNode)
+                    startSymbols.Add(node.stateName);
+                if (node.isEndNode)
+                    endSymbols.Add(node.stateName);
+
+                foreach (AutomatonTransition trans in node.children)
+                {
+                    foreach (char c in trans.acceptedSymbols)
+                    {
+                        ProductLine p = new ProductLine(node.stateName, c.ToString(), trans.automatonNode.stateName);
+                        productionLines.Add(p);
+
+                        if (!alphabet.Contains(c.ToString()))
+                            alphabet.Add(c.ToString());
+                    }
+                }
+            }
+
+            filling = false;
         }
 
         public string toString()

@@ -258,7 +258,8 @@ namespace FormeleMethodenPracticum
                         {
                             if (Window.INSTANCE.lastProcessedResult is AutomatonCore)
                             {
-                                //Window.INSTANCE.lastProcessedResult;
+                                Window.INSTANCE.lastProcessedResult = new RegularGrammar((Window.INSTANCE.lastProcessedResult as AutomatonCore));
+                                Window.INSTANCE.WriteLine("Automaton converted to Grammar");
                             }
                         }));
                 CommandsList.Add(new Command("Help",
