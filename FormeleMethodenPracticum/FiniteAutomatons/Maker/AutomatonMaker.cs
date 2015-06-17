@@ -256,14 +256,14 @@ namespace FormeleMethodenPracticum
 
             if (createdAutomatonCore.nondeterministic)
             {
-                Window.INSTANCE.lastProcessedResult = createdAutomatonCore;
+                Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] = createdAutomatonCore;
                 this.Close();
                 return;
             }
 
             if (isDFA(createdAutomatonCore))
             {
-                Window.INSTANCE.lastProcessedResult = createdAutomatonCore;
+                Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] = createdAutomatonCore;
                 this.Close();
             }
             else
@@ -669,6 +669,15 @@ namespace FormeleMethodenPracticum
             return false;
         }
 
+        public static AutomatonCore negateDFA(AutomatonCore automatonCore)
+        {
+            foreach (AutomatonNodeCore node in automatonCore.nodes)
+            {
+                node.isEndNode = !node.isEndNode;
+            }
+            return automatonCore;
+        }
+
         public static AutomatonCore reverseDFA(AutomatonCore automatonCore)
         {
             AutomatonCore reverse = new AutomatonCore(true);
@@ -732,6 +741,176 @@ namespace FormeleMethodenPracticum
         public static AutomatonCore DFAMinimize(AutomatonCore automatonCore)
         {
             return toDFA(reverseDFA(toDFA(reverseDFA(toDFA(reverseDFA(automatonCore))))));
+        }
+
+        public static AutomatonCore AndDFA(AutomatonCore core1, AutomatonCore core2)
+        {
+            AutomatonCore returnCore = prepareForOperator(core1, core2);
+            
+            foreach (AutomatonNodeCore nodeCore1 in returnCore.nodes)
+	        {
+                string[] origins = nodeCore1.stateName.Split(',');
+                foreach (AutomatonNodeCore nodeCore2 in core1.nodes)
+                {
+                    if(nodeCore2.stateName == origins[0])
+                    {
+                        foreach (AutomatonNodeCore nodeCore3 in core2.nodes)
+                        {
+                            if (nodeCore3.stateName == origins[1])
+                            {
+                                if (nodeCore2.isBeginNode && nodeCore3.isBeginNode)
+                                {
+                                    nodeCore1.isBeginNode = true;
+                                }
+                                else
+                                {
+                                    nodeCore1.isBeginNode = false;
+                                }
+
+                                if (nodeCore2.isEndNode && nodeCore3.isEndNode)
+                                {
+                                    nodeCore1.isEndNode = true;
+                                }
+                                else
+                                {
+                                    nodeCore1.isEndNode = false;
+                                }
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                }
+	        }
+            return returnCore;
+        }
+
+        public static AutomatonCore OrDFA(AutomatonCore core1, AutomatonCore core2)
+        {
+            AutomatonCore returnCore = prepareForOperator(core1, core2);
+
+            foreach (AutomatonNodeCore nodeCore1 in returnCore.nodes)
+            {
+                string[] origins = nodeCore1.stateName.Split(',');
+                foreach (AutomatonNodeCore nodeCore2 in core1.nodes)
+                {
+                    if (nodeCore2.stateName == origins[0])
+                    {
+                        foreach (AutomatonNodeCore nodeCore3 in core2.nodes)
+                        {
+                            if (nodeCore3.stateName == origins[1])
+                            {
+                                if (nodeCore2.isBeginNode || nodeCore3.isBeginNode)
+                                {
+                                    nodeCore1.isBeginNode = true;
+                                }
+                                else
+                                {
+                                    nodeCore1.isBeginNode = false;
+                                }
+
+                                if (nodeCore2.isEndNode || nodeCore3.isEndNode)
+                                {
+                                    nodeCore1.isEndNode = true;
+                                }
+                                else
+                                {
+                                    nodeCore1.isEndNode = false;
+                                }
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+            return returnCore;
+        }
+
+        private static AutomatonCore prepareForOperator(AutomatonCore core1, AutomatonCore core2)//Accounts for same alphabet
+        {
+            convertNames(core1);
+            convertNames(core2);
+
+            AutomatonCore returnCore = new AutomatonCore(false);
+
+            HashSet<char> alphabet = new HashSet<char>();
+            foreach (AutomatonNodeCore nodeCore1 in core1.nodes)
+            {
+                foreach (AutomatonTransition trans1 in nodeCore1.children)
+                {
+                    foreach (char alpha in trans1.acceptedSymbols)
+                    {
+                        alphabet.Add(alpha);
+                    }
+                }
+            }
+
+            List<AutomatonNodeCore> newStatesAsNodes = new List<AutomatonNodeCore>();
+            foreach (AutomatonNodeCore nodeCore1 in core1.nodes)
+            {
+                foreach (AutomatonNodeCore nodeCore2 in core2.nodes)
+	            {
+                    AutomatonNodeCore nodeCore = new AutomatonNodeCore();
+                    nodeCore.stateName = nodeCore1.stateName + "," + nodeCore2.stateName;
+                    newStatesAsNodes.Add(nodeCore);
+	            }
+            }
+
+            foreach (AutomatonNodeCore nodeCore1 in newStatesAsNodes)
+            {
+                string[] origins = nodeCore1.stateName.Split(',');
+                Dictionary<char, string> childs = new Dictionary<char, string>();
+
+                foreach (AutomatonNodeCore ogCore1 in core1.nodes)
+                {
+                    if (ogCore1.stateName == origins[0])
+                    {
+                        foreach (AutomatonTransition ogTrans1 in ogCore1.children)
+                        {
+                            foreach (char alpha in ogTrans1.acceptedSymbols)
+                            {
+                                childs[alpha] = ogTrans1.automatonNode.stateName;
+                            }
+                        }
+                    }
+                }
+
+                foreach (AutomatonNodeCore ogCore2 in core2.nodes)
+                {
+                    if (ogCore2.stateName == origins[1])
+                    {
+                        foreach (AutomatonTransition ogTrans2 in ogCore2.children)
+                        {
+                            foreach (char alpha in ogTrans2.acceptedSymbols)
+                            {
+                                childs[alpha] += "," + ogTrans2.automatonNode.stateName;
+                            }
+                        }
+                    }
+                }
+
+                foreach (KeyValuePair<char, string> child in childs)
+                {
+                    foreach (AutomatonNodeCore nodeCore2 in newStatesAsNodes)
+                    {
+                        if(nodeCore2.stateName == child.Value)
+                        {
+                            AutomatonTransition trans3 = new AutomatonTransition(nodeCore2);
+                            trans3.acceptedSymbols.Add(child.Key);
+                            nodeCore1.children.Add(trans3);
+
+                            AutomatonTransition trans4 = new AutomatonTransition(nodeCore1);
+                            trans4.acceptedSymbols.Add(child.Key);
+                            nodeCore2.parents.Add(trans4);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            returnCore.nodes.AddRange(newStatesAsNodes);
+            return returnCore;
         }
     }
 }
