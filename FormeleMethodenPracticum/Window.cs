@@ -1,4 +1,5 @@
 ﻿using FormeleMethodenPracticum.FiniteAutomatons;
+using FormeleMethodenPracticum.FiniteAutomatons.Visual;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -28,7 +29,7 @@ namespace FormeleMethodenPracticum
         }
 
         public object lastProcessedResult;
-        RegularGrammar regularGrammar;
+        //RegularGrammar regularGrammar;
 
         public Window()
         {
@@ -86,9 +87,9 @@ namespace FormeleMethodenPracticum
 
         private void processInput()
         {
-            if (Window.INSTANCE.regularGrammar != null && Window.INSTANCE.regularGrammar.filling == true)
+            if (Window.INSTANCE.lastProcessedResult is RegularGrammar && (Window.INSTANCE.lastProcessedResult as RegularGrammar).filling == true)
             {
-                Write( Window.INSTANCE.regularGrammar.processGrammar(inputTextBox.Text));
+                Write((Window.INSTANCE.lastProcessedResult as RegularGrammar).processGrammar(inputTextBox.Text));
             }
             else
             {
@@ -167,6 +168,12 @@ namespace FormeleMethodenPracticum
                      {
                          Window.INSTANCE.lastProcessedResult = AutomatonMaker.CreateNew(true);
                      }));
+                CommandsList.Add(new Command("DFARename",
+                     "Renames the states of a DFA/NDFA",
+                     delegate(string paramaters)
+                     {
+                         AutomatonMaker.convertNames(Window.INSTANCE.lastProcessedResult as AutomatonCore);
+                     }));
                 CommandsList.Add(new Command("isPreviousItemDFA",
                      "Check whether the last made object is a DFA",
                      delegate(string paramaters)
@@ -181,19 +188,26 @@ namespace FormeleMethodenPracticum
                      delegate(string paramaters)
                      {
                          if (Window.INSTANCE.lastProcessedResult is AutomatonCore)
-                         {
-                             AutomatonCore a = AutomatonMaker.toDFA(Window.INSTANCE.lastProcessedResult as AutomatonCore);
-                         }
+                             Window.INSTANCE.lastProcessedResult = AutomatonMaker.toDFA(Window.INSTANCE.lastProcessedResult as AutomatonCore);
                          else
                              Window.INSTANCE.WriteLine("The previous result was not an automaton.");//TODO: Check for other needs
+                     }));
+                CommandsList.Add(new Command("ItemIs",
+                     "Prints what the saved item is",
+                     delegate(string paramaters)
+                     {
+                         if (Window.INSTANCE.lastProcessedResult is AutomatonCore)
+                             Window.INSTANCE.WriteLine("Result is " + ((Window.INSTANCE.lastProcessedResult as AutomatonCore).nondeterministic ? "NDFA" : "DFA"));
+                         else if (Window.INSTANCE.lastProcessedResult is RegularGrammar)
+                             Window.INSTANCE.WriteLine("Result is Grammar");
+                         else if(Window.INSTANCE.lastProcessedResult == null)
+                             Window.INSTANCE.WriteLine("Result is empty");
                      }));
                 CommandsList.Add(new Command("Grammar",
                         "Play with formal grammar.",
                         delegate(string paramaters)
                         {
-                            Window.INSTANCE.regularGrammar = new RegularGrammar();
-                            Window.INSTANCE.regularGrammar.partToFill = "SYMBOLS";
-                            Window.INSTANCE.regularGrammar.filling = true;
+                            Window.INSTANCE.lastProcessedResult = new RegularGrammar();
                             Window.INSTANCE.WriteLine("Type the symbols.");
                             Window.INSTANCE.WriteLine("Example: A, B");
                         }));
@@ -214,16 +228,56 @@ namespace FormeleMethodenPracticum
                         "Do grammar string thing.",
                         delegate(string paramaters)
                         {
-                            if (Window.INSTANCE.regularGrammar != null)
-                                Window.INSTANCE.WriteLine(Window.INSTANCE.regularGrammar.toString());
+                            if (Window.INSTANCE.lastProcessedResult is RegularGrammar)
+                                Window.INSTANCE.WriteLine((Window.INSTANCE.lastProcessedResult as RegularGrammar).toString());
                         }));
                 CommandsList.Add(new Command("GrammarToNDFA",
                         "Convert Grammar to NDFA",
                         delegate(string paramaters)
                         {
-                            if (Window.INSTANCE.regularGrammar != null)
+                            if (Window.INSTANCE.lastProcessedResult is RegularGrammar)
                             {
-                                Window.INSTANCE.regularGrammar.changeToNDFA();
+                                Window.INSTANCE.lastProcessedResult = (Window.INSTANCE.lastProcessedResult as RegularGrammar).changeToNDFA();
+                               Window.INSTANCE.WriteLine("The NDFA has made from the grammar");
+                            }
+                        }));
+                CommandsList.Add(new Command("ShowAutomaton",
+                        "Shows the automaton in a table",
+                        delegate(string paramaters)
+                        {
+                            if (Window.INSTANCE.lastProcessedResult is AutomatonCore)
+                            {
+                                //Window.INSTANCE.lastProcessedResult;
+                                AutomatonTable table = new AutomatonTable(Window.INSTANCE.lastProcessedResult as AutomatonCore);
+                                table.ShowDialog();
+                            }
+                        }));
+                CommandsList.Add(new Command("DFAReverse",
+                        "Reverse the DFA/NDFA, new Automaton will be NDFA",
+                        delegate(string paramaters)
+                        {
+                            if (Window.INSTANCE.lastProcessedResult is AutomatonCore && !(Window.INSTANCE.lastProcessedResult as AutomatonCore).nondeterministic)
+                            {
+                                Window.INSTANCE.lastProcessedResult = AutomatonMaker.reverseDFA(Window.INSTANCE.lastProcessedResult as AutomatonCore);
+                            }
+                        }));
+                CommandsList.Add(new Command("DFAMinimize",
+                        "Minimize the DFA",
+                        delegate(string paramaters)
+                        {
+                            if (Window.INSTANCE.lastProcessedResult is AutomatonCore && !(Window.INSTANCE.lastProcessedResult as AutomatonCore).nondeterministic)
+                            {
+                                Window.INSTANCE.lastProcessedResult = AutomatonMaker.DFAMinimize(Window.INSTANCE.lastProcessedResult as AutomatonCore);
+                            }
+                        }));
+                CommandsList.Add(new Command("AutomatonToGrammar",
+                        "Convert Automaton to Grammar",
+                        delegate(string paramaters)
+                        {
+                            if (Window.INSTANCE.lastProcessedResult is AutomatonCore)
+                            {
+                                Window.INSTANCE.lastProcessedResult = new RegularGrammar((Window.INSTANCE.lastProcessedResult as AutomatonCore));
+                                Window.INSTANCE.WriteLine("Automaton converted to Grammar");
                             }
                         }));
                 CommandsList.Add(new Command("Help",

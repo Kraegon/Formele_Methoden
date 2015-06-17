@@ -10,8 +10,8 @@ namespace FormeleMethodenPracticum.FiniteAutomatons
     public class AutomatonNodeCore
     {
         public string stateName = "";
-        public bool isEndNode;
-        public bool isBeginNode;
+        public bool isEndNode = false;
+        public bool isBeginNode = false;
         public List<AutomatonTransition> parents = new List<AutomatonTransition>();
         public List<AutomatonTransition> children = new List<AutomatonTransition>();
     }

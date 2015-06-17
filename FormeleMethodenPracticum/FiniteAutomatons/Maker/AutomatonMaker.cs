@@ -106,7 +106,7 @@ namespace FormeleMethodenPracticum
                                     {
                                         txt += transition.acceptedSymbols[i];
                                         if ((i + 1) < transition.acceptedSymbols.Count)
-                                            txt += ", ";
+                                            txt += ",";
                                     }
 
                                     if (n1.createdAutomatonNodeCore == n2.createdAutomatonNodeCore)
@@ -235,6 +235,25 @@ namespace FormeleMethodenPracticum
                 return;
             }
 
+            HashSet<char> alphabet = new HashSet<char>();
+            foreach (AutomatonNodeCore node in createdAutomatonCore.nodes)
+            {
+                foreach (AutomatonTransition trans in node.children)
+                {
+                    foreach (char alpha in trans.acceptedSymbols)
+                    {
+                        alphabet.Add(alpha);
+                    }
+
+                }
+            }
+
+            if (alphabet.Count == 0)
+            {
+                MessageBox.Show("Must use atleast one character.", "Error");
+                return;
+            }
+
             if (createdAutomatonCore.nondeterministic)
             {
                 Window.INSTANCE.lastProcessedResult = createdAutomatonCore;
@@ -255,6 +274,8 @@ namespace FormeleMethodenPracticum
 
         public static AutomatonCore toDFA(AutomatonCore automatonCore)
         {
+            convertNames(automatonCore);
+
             //Stop if it's already deterministic
             if (!automatonCore.nondeterministic)
                 return automatonCore;
@@ -273,19 +294,6 @@ namespace FormeleMethodenPracticum
                 if (node.isBeginNode)
                     beginNodes.Add(node);
 	        }
-
-            ////Find all characters of this alphabet and add them to this hashset
-            //HashSet<char> alphabet = new HashSet<char>();
-            //foreach (AutomatonNodeCore node in automatonCore.nodes)
-            //{
-            //    foreach (AutomatonTransition trans in node.children)
-            //    {
-            //        foreach (char character in trans.acceptedSymbols)
-            //        {
-            //            alphabet.Add(character);
-            //        }
-            //    }
-            //}
 
             //Magic TODO: Add comments
             //      statename         alphabet  destination-states
@@ -308,14 +316,39 @@ namespace FormeleMethodenPracticum
             return statesToAutomatonCore(automatonCore.nodes, states);
         }
 
+        public static void convertNames(AutomatonCore automatonCore)
+        {
+            for (int i = 0; i < automatonCore.nodes.Count; ++i)
+            {
+                if (i > 25)
+                    automatonCore.nodes[i].stateName = "A" + (Convert.ToChar(65 + i)).ToString();
+                else
+                    automatonCore.nodes[i].stateName = (Convert.ToChar(65 + i)).ToString();
+            }
+        }
+
         private static AutomatonCore statesToAutomatonCore(List<AutomatonNodeCore> originalAutomatonNodes, Dictionary<string, Dictionary<char, HashSet<string>>> states)
         {
             AutomatonCore automatonCore = new AutomatonCore(true);
             foreach (KeyValuePair<string, Dictionary<char, HashSet<string>>> state in states)
             {
                 AutomatonNodeCore node = new AutomatonNodeCore();
+                string[] parts = state.Key.Trim().Split(',');
                 foreach (AutomatonNodeCore ogNode in originalAutomatonNodes)
                 {
+                    bool contains = false;
+                    foreach (string item in parts)
+                    {
+                        if (item == ogNode.stateName)
+                        {
+                            contains = true;
+                            break;
+                        }
+                    }
+
+                    if (!contains)
+                        continue;
+
                     if (ogNode.isBeginNode)
                         node.isBeginNode = true;
 
@@ -333,50 +366,110 @@ namespace FormeleMethodenPracticum
                 
                 foreach (KeyValuePair<char, HashSet<string>> alphaStatePair in state)
                 {
-                    foreach (string childStateName in alphaStatePair.Value)
+                    string childStateName = "";
+                    bool first = true;
+                    foreach (string childNamePart in alphaStatePair.Value)
 	                {
-                        foreach (AutomatonNodeCore node2 in automatonCore.nodes)
-                        {
-                            if (node2.stateName != childStateName)
-                                continue;
+                        if(!first)
+                            childStateName += ",";
 
-                            bool linkAlreadyExisted = false;
-                            foreach (AutomatonTransition tr1 in node.children)
-                            {
-                                if(tr1.automatonNode == node2)
-                                {
-                                    tr1.acceptedSymbols.Add(alphaStatePair.Key);
+                        childStateName += childNamePart;
+                        first = false;
+                    }
 
-                                    foreach (AutomatonTransition tr2 in node2.parents)
-                                    {
-                                        if (tr2.automatonNode == node)
-                                        {
-                                            tr2.acceptedSymbols.Add(alphaStatePair.Key);
-                                        }
-                                        break;
-                                    }
+                    foreach (AutomatonNodeCore node2 in automatonCore.nodes)
+                    {
+                        if (node2.stateName != childStateName)
+                            continue;
 
-                                    linkAlreadyExisted = true;
-                                }
-                            }
+                        AutomatonTransition trans1 = new AutomatonTransition(node2);
+                        trans1.acceptedSymbols.Add(alphaStatePair.Key);
+                        node.children.Add(trans1);
 
-                            if (!linkAlreadyExisted)
-                            {
-                                AutomatonTransition trans1 = new AutomatonTransition(node2);
-                                trans1.acceptedSymbols.Add(alphaStatePair.Key);
-                                node.children.Add(trans1);
-
-                                AutomatonTransition trans2 = new AutomatonTransition(node);
-                                trans2.acceptedSymbols.Add(alphaStatePair.Key);
-                                node2.parents.Add(trans2);
-                            }
-                            break;
-                            //TODO: Check
-                        }  
-	                }
+                        AutomatonTransition trans2 = new AutomatonTransition(node);
+                        trans2.acceptedSymbols.Add(alphaStatePair.Key);
+                        node2.parents.Add(trans2);
+                        break;
+                    }  
                 }
             }
 
+            HashSet<char> alphabet = new HashSet<char>();
+            foreach (AutomatonNodeCore node in originalAutomatonNodes)
+            {
+                foreach (AutomatonTransition trans in node.children)
+                {
+                    foreach (char alpha in trans.acceptedSymbols)
+                    {
+                        alphabet.Add(alpha);
+                    }
+                }
+            }
+
+            bool errorStateMade = false;
+            AutomatonNodeCore errorState = null;
+            foreach (AutomatonNodeCore node1 in automatonCore.nodes)
+            {
+                HashSet<char> containingAlphabet = new HashSet<char>();
+                foreach (AutomatonTransition trans5 in node1.children)
+                {
+                    foreach (char alpha in trans5.acceptedSymbols)
+                    {
+                        containingAlphabet.Add(alpha);
+                    }
+                }
+
+                if(containingAlphabet.Count != alphabet.Count && !errorStateMade)
+                {
+                    errorState = new AutomatonNodeCore();
+                    errorState.stateName = "ø";
+                    AutomatonTransition trans1 = new AutomatonTransition(errorState);
+                    foreach (char alpha in alphabet)
+	                {
+		                trans1.acceptedSymbols.Add(alpha);
+	                }
+                    errorState.children.Add(trans1);
+
+                    errorStateMade = true;
+                }
+
+                if (containingAlphabet.Count != alphabet.Count)
+                {
+                    foreach (char alpha in alphabet)
+                    {
+                        bool found = false;
+                        foreach (AutomatonTransition trans6 in node1.children)
+                        {
+                            foreach (char alpha2 in trans6.acceptedSymbols)
+                            {
+                                if (alpha2 == alpha)
+                                {
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            if(found)
+                                break;
+                        }
+
+                        if (!found)
+                        {
+                            AutomatonTransition trans1 = new AutomatonTransition(node1);
+                            trans1.acceptedSymbols.Add(alpha);
+                            errorState.parents.Add(trans1);
+
+                            AutomatonTransition trans2 = new AutomatonTransition(errorState);
+                            trans2.acceptedSymbols.Add(alpha);
+                            node1.children.Add(trans2);
+                        }
+                    }
+                }
+            }
+
+            if (errorStateMade)
+                automatonCore.nodes.Add(errorState);
+
+            automatonCore.nondeterministic = false;
             return automatonCore;
         }
 
@@ -520,7 +613,7 @@ namespace FormeleMethodenPracticum
         public static bool isDFA(AutomatonCore automatonCore)
         {
             if (!automatonCore.nondeterministic)
-                return true;
+               return true;
 
             List<char> symbols = new List<char>();
             List<char> foundSymbols = new List<char>();
@@ -557,6 +650,8 @@ namespace FormeleMethodenPracticum
 
                     if (foundSymbols.Count != symbols.Count) //Check whether they are all used
                         return false;
+
+                    foundSymbols = new List<char>();
                 }
             }
 
@@ -574,9 +669,69 @@ namespace FormeleMethodenPracticum
             return false;
         }
 
+        public static AutomatonCore reverseDFA(AutomatonCore automatonCore)
+        {
+            AutomatonCore reverse = new AutomatonCore(true);
+
+            //Fill in the nodes and BeginStates become Endstates and Endstates become Beginstates
+            foreach(AutomatonNodeCore node in automatonCore.nodes)
+            {
+                AutomatonNodeCore newNode = new AutomatonNodeCore();
+                newNode.stateName = node.stateName;
+
+                if (node.isBeginNode)
+                {
+                    newNode.isEndNode = true;
+                    newNode.isBeginNode = false;
+                }
+                if (node.isEndNode)
+                {
+                    newNode.isEndNode = false;
+                    newNode.isBeginNode = true;
+                }
+
+                reverse.nodes.Add(newNode);
+            }
+
+            foreach (AutomatonNodeCore node in automatonCore.nodes)
+            {
+                foreach (AutomatonTransition trans in node.children)
+	            {
+                    foreach (AutomatonNodeCore node1 in reverse.nodes)
+                    {
+                        if (node.stateName != node1.stateName)//Matches OG parent
+                            continue;
+
+                        foreach (AutomatonNodeCore node2 in reverse.nodes)
+                        {
+                            if (node2.stateName != trans.automatonNode.stateName)//Matches OG child
+                                continue;
+                            
+                            AutomatonTransition trans1 = new AutomatonTransition(node1);
+                            trans1.acceptedSymbols = trans.acceptedSymbols;
+                            node2.children.Add(trans1);
+
+                            AutomatonTransition trans2 = new AutomatonTransition(node2);
+                            trans2.acceptedSymbols = trans.acceptedSymbols;
+                            node1.parents.Add(trans2);
+                            break;
+                        }
+                        break;
+                    }
+                }
+            }
+
+            return reverse;
+        }
+
         private void button1_KeyUp(object sender, KeyEventArgs e)
         {
             OnKeyUp(e);
+        }
+
+        public static AutomatonCore DFAMinimize(AutomatonCore automatonCore)
+        {
+            return toDFA(reverseDFA(toDFA(reverseDFA(toDFA(reverseDFA(automatonCore))))));
         }
     }
 }
