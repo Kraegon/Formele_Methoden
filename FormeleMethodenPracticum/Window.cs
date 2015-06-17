@@ -250,13 +250,13 @@ namespace FormeleMethodenPracticum
                             Window.INSTANCE.WriteLine("Type the symbols.");
                             Window.INSTANCE.WriteLine("Example: A, B");
                         }));
-                CommandsList.Add(new Command("Regex",
+               /* CommandsList.Add(new Command("Regex",
                         "Play with regular expressions.",
                         delegate(string paramaters)
                         {
                             Window.INSTANCE.WriteLine("Params: " + paramaters);
                             //Regex.ParseRegex(paramaters);
-                        }));
+                        }));*/
                 CommandsList.Add(new Command("Exit",
                        "Quit the program.",
                        delegate(string paramaters)

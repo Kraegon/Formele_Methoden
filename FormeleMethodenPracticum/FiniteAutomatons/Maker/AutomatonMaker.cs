@@ -740,7 +740,7 @@ namespace FormeleMethodenPracticum
 
         public static AutomatonCore DFAMinimize(AutomatonCore automatonCore)
         {
-            return toDFA(reverseDFA(toDFA(reverseDFA(toDFA(reverseDFA(automatonCore))))));
+            return toDFA(reverseDFA(toDFA(reverseDFA(automatonCore))));
         }
 
         public static AutomatonCore AndDFA(AutomatonCore core1, AutomatonCore core2)
