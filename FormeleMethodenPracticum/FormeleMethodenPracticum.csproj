@@ -65,10 +65,10 @@
     <Compile Include="FiniteAutomatons\Maker\StateNameInputBox.Designer.cs">
       <DependentUpon>StateNameInputBox.cs</DependentUpon>
     </Compile>
-    <Compile Include="FiniteAutomatons\Visual\AutomatonTable.cs">
+    <Compile Include="FiniteAutomatons\Maker\AutomatonTable.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="FiniteAutomatons\Visual\AutomatonTable.Designer.cs">
+    <Compile Include="FiniteAutomatons\Maker\AutomatonTable.Designer.cs">
       <DependentUpon>AutomatonTable.cs</DependentUpon>
     </Compile>
     <Compile Include="Window.cs">
@@ -89,7 +89,7 @@
     <EmbeddedResource Include="FiniteAutomatons\Maker\StateNameInputBox.resx">
       <DependentUpon>StateNameInputBox.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="FiniteAutomatons\Visual\AutomatonTable.resx">
+    <EmbeddedResource Include="FiniteAutomatons\Maker\AutomatonTable.resx">
       <DependentUpon>AutomatonTable.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Window.resx">
