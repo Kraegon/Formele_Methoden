@@ -71,6 +71,7 @@
     <Compile Include="FiniteAutomatons\Maker\AutomatonTable.Designer.cs">
       <DependentUpon>AutomatonTable.cs</DependentUpon>
     </Compile>
+    <Compile Include="Regex.cs" />
     <Compile Include="Window.cs">
       <SubType>Form</SubType>
     </Compile>

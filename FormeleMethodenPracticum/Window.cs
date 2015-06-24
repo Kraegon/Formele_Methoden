@@ -328,6 +328,13 @@ namespace FormeleMethodenPracticum
                                 Window.INSTANCE.WriteLine("Automaton converted to Grammar");
                             }
                         }));
+                CommandsList.Add(new Command("Regex",
+                    "Fill in regex to perform operations on.",
+                    delegate(string parameters)
+                    {
+                        MyRegex.ParseRegex(parameters);
+                    }
+                    ));
                 CommandsList.Add(new Command("Help",
                         "This help command.",
                         delegate(string parameters)
@@ -369,6 +376,11 @@ namespace FormeleMethodenPracticum
             {
                 return "-> " + Name + " \n" + "'" + Description + "'";
             }
+        }
+
+        private void Window_Load(object sender, EventArgs e)
+        {
+            inputTextBox.Select();
         } //End Command
     } //End Window
 }//End namespace
