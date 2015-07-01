@@ -16,7 +16,7 @@ namespace FormeleMethodenPracticum
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(Window.INSTANCE);
+            Application.Run(Console.INSTANCE);
         }
 
         public static void Terminate()

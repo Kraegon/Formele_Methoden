@@ -1,6 +1,6 @@
 ﻿namespace FormeleMethodenPracticum
 {
-    partial class Window
+    partial class Console
     {
         /// <summary>
         /// Required designer variable.

@@ -41,16 +41,16 @@ namespace FormeleMethodenPracticum
             mutateExp(exp, out exp); //Remove whitespaces
             if (!validifyExp(exp)) //Check for bracet consistency and invalid characters
             {
-                Window.INSTANCE.WriteLine("Invalid expression.");
+                Console.INSTANCE.WriteLine("Invalid expression.");
                 return;
             }
             else
             {
                 ops = buildOperatorTree(exp);
                 if (ops != null)
-                    Window.INSTANCE.WriteLine(ops.ToString());
+                    Console.INSTANCE.WriteLine(ops.ToString());
                 else
-                    Window.INSTANCE.WriteLine("Operator Tree could not be constructed.");
+                    Console.INSTANCE.WriteLine("Operator Tree could not be constructed.");
             }
         }
 
@@ -66,8 +66,8 @@ namespace FormeleMethodenPracticum
             }
             #region DEBUG
 #if DEBUG
-            Window.INSTANCE.WriteLine("Mutated to add dots: new exp = " + exp);
-            Window.INSTANCE.WriteLine("Parsing " + exp + " for highest precedence operator");
+            Console.INSTANCE.WriteLine("Mutated to add dots: new exp = " + exp);
+            Console.INSTANCE.WriteLine("Parsing " + exp + " for highest precedence operator");
 #endif
             #endregion
             return exp;
@@ -99,7 +99,7 @@ namespace FormeleMethodenPracticum
                 exp = exp.Substring(1, exp.Length - 2);
                 #region DEBUG
 #if DEBUG
-                Window.INSTANCE.WriteLine("Removed brackets: new exp = " + exp);
+                Console.INSTANCE.WriteLine("Removed brackets: new exp = " + exp);
 #endif
                 #endregion
             }
@@ -166,7 +166,7 @@ namespace FormeleMethodenPracticum
                             }
                             break;
                         default:
-                            Window.INSTANCE.WriteLine("Unimplemented character in regex");
+                            Console.INSTANCE.WriteLine("Unimplemented character in regex");
                             return null;
                     }
                 }
@@ -194,15 +194,15 @@ namespace FormeleMethodenPracticum
             }
             #region DEBUG
 #if DEBUG
-            Window.INSTANCE.WriteLine("Highest presedence op : " + thisOp.Character + " in " + exp);
+            Console.INSTANCE.WriteLine("Highest presedence op : " + thisOp.Character + " in " + exp);
             if (leftRegex != null)
-                Window.INSTANCE.WriteLine("Left : " + leftRegex);
+                Console.INSTANCE.WriteLine("Left : " + leftRegex);
             else
-                Window.INSTANCE.WriteLine("No left hand side");
+                Console.INSTANCE.WriteLine("No left hand side");
             if (rightRegex != null)
-                Window.INSTANCE.WriteLine("Right : " + rightRegex);
+                Console.INSTANCE.WriteLine("Right : " + rightRegex);
             else
-                Window.INSTANCE.WriteLine("No right hand side");
+                Console.INSTANCE.WriteLine("No right hand side");
 #endif
             #endregion
             return operations;

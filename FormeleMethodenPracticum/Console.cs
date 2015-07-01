@@ -13,16 +13,16 @@ using System.Windows.Forms;
 
 namespace FormeleMethodenPracticum
 {
-    public partial class Window : Form
+    public partial class Console : Form
     {
-        private static Window _instance;
-        public static Window INSTANCE
+        private static Console _instance;
+        public static Console INSTANCE
         {
             get
             {
                 if (_instance == null)
                 {
-                    _instance = new Window();
+                    _instance = new Console();
                 }
                 return _instance;
             }
@@ -32,7 +32,7 @@ namespace FormeleMethodenPracticum
         public int currentSaveSlot = 0;
         public object[] processedResults = new object[amountOfSaveSlots];
 
-        public Window()
+        public Console()
         {
             InitializeComponent();
             Commands.Create();
@@ -88,9 +88,9 @@ namespace FormeleMethodenPracticum
 
         private void processInput()
         {
-            if (Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] is RegularGrammar && (Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] as RegularGrammar).filling == true)
+            if (Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] is RegularGrammar && (Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] as RegularGrammar).filling == true)
             {
-                Write((Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] as RegularGrammar).processGrammar(inputTextBox.Text));
+                Write((Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] as RegularGrammar).processGrammar(inputTextBox.Text));
             }
             else
             {
@@ -152,7 +152,7 @@ namespace FormeleMethodenPracticum
                      "Keyup - Assign State Name",
                      delegate(string paramaters)
                      {
-                         Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] = AutomatonMaker.CreateNew(false);
+                         Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] = AutomatonMaker.CreateNew(false);
                      }));
                 CommandsList.Add(new Command("NDFA",
                      "Play with (N)DFAs.\n" +
@@ -167,7 +167,7 @@ namespace FormeleMethodenPracticum
                      "Keyup - Assign State Name",
                      delegate(string paramaters)
                      {
-                         Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] = AutomatonMaker.CreateNew(true);
+                         Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] = AutomatonMaker.CreateNew(true);
                      }));
                 CommandsList.Add(new Command("DFAAnd",
                      "Uses the AND operator on save slot (0-9, 0-9) and places the new DFA in the current save slot",
@@ -179,9 +179,9 @@ namespace FormeleMethodenPracticum
                          if (parts.Length == 2)
                          {
                              if (int.TryParse(parts[0], out a) && int.TryParse(parts[1], out b))
-                                 if (Window.INSTANCE.processedResults[a] is AutomatonCore && Window.INSTANCE.processedResults[b] is AutomatonCore)
-                                     if (!(Window.INSTANCE.processedResults[a] as AutomatonCore).nondeterministic && !(Window.INSTANCE.processedResults[b] as AutomatonCore).nondeterministic)
-                                         Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] = AutomatonMaker.AndDFA(Window.INSTANCE.processedResults[a] as AutomatonCore, Window.INSTANCE.processedResults[b] as AutomatonCore);
+                                 if (Console.INSTANCE.processedResults[a] is AutomatonCore && Console.INSTANCE.processedResults[b] is AutomatonCore)
+                                     if (!(Console.INSTANCE.processedResults[a] as AutomatonCore).nondeterministic && !(Console.INSTANCE.processedResults[b] as AutomatonCore).nondeterministic)
+                                         Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] = AutomatonMaker.AndDFA(Console.INSTANCE.processedResults[a] as AutomatonCore, Console.INSTANCE.processedResults[b] as AutomatonCore);
                          }
                      }));
                 CommandsList.Add(new Command("DFAOr",
@@ -194,9 +194,9 @@ namespace FormeleMethodenPracticum
                          if (parts.Length == 2)
                          {
                              if (int.TryParse(parts[0], out a) && int.TryParse(parts[1], out b))
-                                 if (Window.INSTANCE.processedResults[a] is AutomatonCore && Window.INSTANCE.processedResults[b] is AutomatonCore)
-                                     if (!(Window.INSTANCE.processedResults[a] as AutomatonCore).nondeterministic && !(Window.INSTANCE.processedResults[b] as AutomatonCore).nondeterministic)
-                                         Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] = AutomatonMaker.OrDFA(Window.INSTANCE.processedResults[a] as AutomatonCore, Window.INSTANCE.processedResults[b] as AutomatonCore);
+                                 if (Console.INSTANCE.processedResults[a] is AutomatonCore && Console.INSTANCE.processedResults[b] is AutomatonCore)
+                                     if (!(Console.INSTANCE.processedResults[a] as AutomatonCore).nondeterministic && !(Console.INSTANCE.processedResults[b] as AutomatonCore).nondeterministic)
+                                         Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] = AutomatonMaker.OrDFA(Console.INSTANCE.processedResults[a] as AutomatonCore, Console.INSTANCE.processedResults[b] as AutomatonCore);
                          }
                      }));
                 CommandsList.Add(new Command("ChangeSaveSlot",
@@ -208,8 +208,8 @@ namespace FormeleMethodenPracticum
                          {
                              if (i < amountOfSaveSlots)
                              {
-                                 Window.INSTANCE.currentSaveSlot = i;
-                                 Window.INSTANCE.WriteLine("Current Save Slot is now: " + i);
+                                 Console.INSTANCE.currentSaveSlot = i;
+                                 Console.INSTANCE.WriteLine("Current Save Slot is now: " + i);
                              }
                          }
                      }));
@@ -217,38 +217,38 @@ namespace FormeleMethodenPracticum
                      "Check whether the last made object is a DFA",
                      delegate(string paramaters)
                      {
-                         if (Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] is AutomatonCore)
-                             Window.INSTANCE.WriteLine("Was the previous automaton deterministic?: " + (AutomatonMaker.isDFA(Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] as AutomatonCore) ? "true" : "false"));
+                         if (Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] is AutomatonCore)
+                             Console.INSTANCE.WriteLine("Was the previous automaton deterministic?: " + (AutomatonMaker.isDFA(Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] as AutomatonCore) ? "true" : "false"));
                          else
-                             Window.INSTANCE.WriteLine("The previous result was not an automaton.");//TODO: Check for other needs
+                             Console.INSTANCE.WriteLine("The previous result was not an automaton.");//TODO: Check for other needs
                      }));
                 CommandsList.Add(new Command("convertPreviousNDFAToDFA",
                      "ConvertNDFAToDFA",
                      delegate(string paramaters)
                      {
-                         if (Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] is AutomatonCore)
-                             Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] = AutomatonMaker.toDFA(Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] as AutomatonCore);
+                         if (Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] is AutomatonCore)
+                             Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] = AutomatonMaker.toDFA(Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] as AutomatonCore);
                          else
-                             Window.INSTANCE.WriteLine("The previous result was not an automaton.");//TODO: Check for other needs
+                             Console.INSTANCE.WriteLine("The previous result was not an automaton.");//TODO: Check for other needs
                      }));
                 CommandsList.Add(new Command("ItemIs",
                      "Prints what the saved item is",
                      delegate(string paramaters)
                      {
-                         if (Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] is AutomatonCore)
-                             Window.INSTANCE.WriteLine("Result is " + ((Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] as AutomatonCore).nondeterministic ? "NDFA" : "DFA"));
-                         else if (Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] is RegularGrammar)
-                             Window.INSTANCE.WriteLine("Result is Grammar");
-                         else if(Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] == null)
-                             Window.INSTANCE.WriteLine("Result is empty");
+                         if (Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] is AutomatonCore)
+                             Console.INSTANCE.WriteLine("Result is " + ((Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] as AutomatonCore).nondeterministic ? "NDFA" : "DFA"));
+                         else if (Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] is RegularGrammar)
+                             Console.INSTANCE.WriteLine("Result is Grammar");
+                         else if(Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] == null)
+                             Console.INSTANCE.WriteLine("Result is empty");
                      }));
                 CommandsList.Add(new Command("Grammar",
                         "Play with formal grammar.",
                         delegate(string paramaters)
                         {
-                            Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] = new RegularGrammar();
-                            Window.INSTANCE.WriteLine("Type the symbols.");
-                            Window.INSTANCE.WriteLine("Example: A, B");
+                            Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] = new RegularGrammar();
+                            Console.INSTANCE.WriteLine("Type the symbols.");
+                            Console.INSTANCE.WriteLine("Example: A, B");
                         }));
                /* CommandsList.Add(new Command("Regex",
                         "Play with regular expressions.",
@@ -267,27 +267,27 @@ namespace FormeleMethodenPracticum
                         "Do grammar string thing.",
                         delegate(string paramaters)
                         {
-                            if (Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] is RegularGrammar)
-                                Window.INSTANCE.WriteLine((Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] as RegularGrammar).toString());
+                            if (Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] is RegularGrammar)
+                                Console.INSTANCE.WriteLine((Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] as RegularGrammar).toString());
                         }));
                 CommandsList.Add(new Command("GrammarToNDFA",
                         "Convert Grammar to NDFA",
                         delegate(string paramaters)
                         {
-                            if (Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] is RegularGrammar)
+                            if (Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] is RegularGrammar)
                             {
-                                Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] = (Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] as RegularGrammar).changeToNDFA();
-                               Window.INSTANCE.WriteLine("The NDFA has made from the grammar");
+                                Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] = (Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] as RegularGrammar).changeToNDFA();
+                               Console.INSTANCE.WriteLine("The NDFA has made from the grammar");
                             }
                         }));
                 CommandsList.Add(new Command("ShowAutomaton",
                         "Shows the automaton in a table",
                         delegate(string paramaters)
                         {
-                            if (Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] is AutomatonCore)
+                            if (Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] is AutomatonCore)
                             {
                                 //Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot];
-                                AutomatonTable table = new AutomatonTable(Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] as AutomatonCore);
+                                AutomatonTable table = new AutomatonTable(Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] as AutomatonCore);
                                 table.ShowDialog();
                             }
                         }));
@@ -295,37 +295,37 @@ namespace FormeleMethodenPracticum
                         "Reverse the DFA/NDFA, new Automaton will be NDFA",
                         delegate(string paramaters)
                         {
-                            if (Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] is AutomatonCore && !(Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] as AutomatonCore).nondeterministic)
+                            if (Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] is AutomatonCore && !(Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] as AutomatonCore).nondeterministic)
                             {
-                                Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] = AutomatonMaker.reverseDFA(Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] as AutomatonCore);
+                                Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] = AutomatonMaker.reverseDFA(Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] as AutomatonCore);
                             }
                         }));
                 CommandsList.Add(new Command("DFANegate",
                         "Negate the DFA/NDFA",
                         delegate(string paramaters)
                         {
-                            if (Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] is AutomatonCore)
+                            if (Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] is AutomatonCore)
                             {
-                                Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] = AutomatonMaker.negateDFA(Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] as AutomatonCore);
+                                Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] = AutomatonMaker.negateDFA(Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] as AutomatonCore);
                             }
                         }));
                 CommandsList.Add(new Command("DFAMinimize",
                         "Minimize the DFA",
                         delegate(string paramaters)
                         {
-                            if (Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] is AutomatonCore && !(Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] as AutomatonCore).nondeterministic)
+                            if (Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] is AutomatonCore && !(Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] as AutomatonCore).nondeterministic)
                             {
-                                Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] = AutomatonMaker.DFAMinimize(Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] as AutomatonCore);
+                                Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] = AutomatonMaker.DFAMinimize(Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] as AutomatonCore);
                             }
                         }));
                 CommandsList.Add(new Command("AutomatonToGrammar",
                         "Convert Automaton to Grammar",
                         delegate(string paramaters)
                         {
-                            if (Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] is AutomatonCore)
+                            if (Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] is AutomatonCore)
                             {
-                                Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] = new RegularGrammar((Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] as AutomatonCore));
-                                Window.INSTANCE.WriteLine("Automaton converted to Grammar");
+                                Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] = new RegularGrammar((Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] as AutomatonCore));
+                                Console.INSTANCE.WriteLine("Automaton converted to Grammar");
                             }
                         }));
                 CommandsList.Add(new Command("Regex",
@@ -341,8 +341,8 @@ namespace FormeleMethodenPracticum
                         {
                             foreach(Command c in CommandsList)
                             {
-                                Window.INSTANCE.WriteLine(c.ToString());
-                                Window.INSTANCE.WriteLine("");
+                                Console.INSTANCE.WriteLine(c.ToString());
+                                Console.INSTANCE.WriteLine("");
                             }
                         }));
                 #endregion

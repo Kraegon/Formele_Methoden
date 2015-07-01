@@ -256,14 +256,14 @@ namespace FormeleMethodenPracticum
 
             if (createdAutomatonCore.nondeterministic)
             {
-                Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] = createdAutomatonCore;
+                Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] = createdAutomatonCore;
                 this.Close();
                 return;
             }
 
             if (isDFA(createdAutomatonCore))
             {
-                Window.INSTANCE.processedResults[Window.INSTANCE.currentSaveSlot] = createdAutomatonCore;
+                Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] = createdAutomatonCore;
                 this.Close();
             }
             else
