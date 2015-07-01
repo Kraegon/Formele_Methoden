@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using FormeleMethodenPracticum.FiniteAutomatons.Data;
+using FormeleMethodenPracticum.FiniteAutomatons;
 
 namespace FormeleMethodenPracticum.FiniteAutomatons.Visual
 {

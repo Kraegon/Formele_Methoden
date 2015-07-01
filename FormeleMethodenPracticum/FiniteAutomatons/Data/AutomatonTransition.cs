@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FormeleMethodenPracticum.FiniteAutomatons.Data
+namespace FormeleMethodenPracticum.FiniteAutomatons
 {
     public class AutomatonTransition
     {

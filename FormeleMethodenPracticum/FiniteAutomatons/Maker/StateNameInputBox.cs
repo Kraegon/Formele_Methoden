@@ -1,4 +1,4 @@
-﻿using FormeleMethodenPracticum.FiniteAutomatons.Data;
+﻿using FormeleMethodenPracticum.FiniteAutomatons;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;

@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FormeleMethodenPracticum.FiniteAutomatons;
-using FormeleMethodenPracticum.FiniteAutomatons.Data;
 
 namespace FormeleMethodenPracticum
 {
