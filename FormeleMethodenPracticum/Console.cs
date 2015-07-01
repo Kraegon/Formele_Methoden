@@ -40,7 +40,7 @@ namespace FormeleMethodenPracticum
 
         public void WriteLine(string outputLine)
         {
-            outputTextBox.Text += outputLine + "\n";
+            outputTextBox.AppendText(outputLine + "\n");
 
             outputTextBox.SelectionStart = outputTextBox.Text.Length;
             outputTextBox.ScrollToCaret();
@@ -48,7 +48,7 @@ namespace FormeleMethodenPracticum
 
         public void Write(string output)
         {
-            outputTextBox.Text += output;
+            outputTextBox.AppendText(output);
 
             outputTextBox.SelectionStart = outputTextBox.Text.Length;
             outputTextBox.ScrollToCaret();
