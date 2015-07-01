@@ -35,59 +35,132 @@ namespace FormeleMethodenPracticum
                                                           ' '}; //And normal letters/numerals for language
 
 
-        public static void ParseRegex(string exp)
+        public static AutomatonCore ParseRegex(string exp)
         {
             OperationTree ops;
             mutateExp(exp, out exp); //Remove whitespaces
             if (!validifyExp(exp)) //Check for bracet consistency and invalid characters
             {
-                Console.INSTANCE.WriteLine("Invalid expression.");
-                return;
+                Console.INSTANCE.WriteLine("ERR: Invalid expression.");
+                return null;
             }
             else
             {
                 ops = buildOperatorTree(exp);
                 if (ops != null)
-                    Console.INSTANCE.WriteLine(ops.ToString());
-                else
-                    Console.INSTANCE.WriteLine("Operator Tree could not be constructed.");
-            }
-        }
-
-        //Add implied dots for parsing ease
-        private static string addDotOperations(string exp)
-        {
-            for (int i = 0; i < exp.Length - 1; i++) //Length is already guarenteed larger than 1
-            {
-                if ((char.IsLetterOrDigit(exp[i]) || exp[i] == ')') && (char.IsLetterOrDigit(exp[i + 1]) || exp[i + 1] == '('))
                 {
-                    exp = exp.Substring(0, i + 1) + "." + exp.Substring(i + 1, exp.Length - (i + 1));
+                    Console.INSTANCE.WriteLine(ops.ToString());
+                    AutomatonCore ndfa = buildNDFA(ops);
+                    if (ndfa != null)
+                        return ndfa;
                 }
+                else
+                    Console.INSTANCE.WriteLine("ERR: Operator Tree could not be constructed.");
+
             }
-            #region DEBUG
-#if DEBUG
-            Console.INSTANCE.WriteLine("Mutated to add dots: new exp = " + exp);
-            Console.INSTANCE.WriteLine("Parsing " + exp + " for highest precedence operator");
-#endif
-            #endregion
-            return exp;
+            return null;
         }
 
         /**
          * Construct an NDFA using the Thompson construction method.
          */
-        private static AutomatonCore constructNDFA()
+        private static AutomatonCore buildNDFA(OperationTree parsedRegex)
         {
+            //The (NDFA) core to hang our creation on.
             AutomatonCore core = new AutomatonCore(false);
-            
-            //We'll want to work bottom up
-            //Make a black box for each operator
-            //
-            
+            //The following variable is initialised incomplete
+            LinkedList<AutomatonNodeCore> NDFA = thompsonSubset(parsedRegex);
+            //We need to note the entry state and final state
+            NDFA.First.Value.isBeginNode = true;
+            NDFA.Last.Value.isEndNode = true;
+            //And names to the states            
+            int nameNumber = 0;            
+            foreach(AutomatonNodeCore n in NDFA)
+            {
+                int tmp = nameNumber; //Temporary modifiable clone of nameNumber
+                string name = "";
+                while(tmp >= 0)
+                {
+                    name += (char)(65 + (tmp % 26));
+                    tmp -= 26;
+                }
+                n.stateName = name;
+                nameNumber++;//next name
+            }
+            //Add to core
+            foreach(AutomatonNodeCore n in NDFA)
+            {
+                core.nodes.Add(n);
+            }
             return core;
         }
 
-        //Build a binary tree of 
+        /**
+         * Assistant method for recursive Thompson construction
+         * Do not call me outside of the above constructNDFA
+         * The returned list has a number of requirements:
+         * 1) the first state is the part that connects on the entry end of a black box
+         * 2) the last state is the part that connects to the exit end of a black box
+         * 3) All blackboxes are resolved on returning (recursive)
+         */
+        private static LinkedList<AutomatonNodeCore> thompsonSubset(OperationTree parsedRegex)
+        {
+            LinkedList<AutomatonNodeCore> subset = new LinkedList<AutomatonNodeCore>();
+            //Assume the characters are parsed correctly
+            switch(parsedRegex.Op.Character)
+            {
+                case '|':
+                    /*                          BLACK BOX A 
+                     *                       ε/             \ε
+                     * OR construction  -->[A]               [B]-->
+                     *                       ε\             /ε
+                     *                          BLACK BOX B 
+                     */
+
+
+                    break;
+                case '*':
+                    /*                                + -------------------ε------------------> +
+                     * ZERO-OR-MORE construction: -->[A] -ε-> [B] -ε-> BLACK BOX -ε-> [C] -ε-> [D]-->
+                     *                                         + <---------ε---------- +
+                     */  
+
+                    break;
+                case '+':
+                    /*                                
+                     * ONE-OR-MORE construction: -->[A] -ε-> [B] -ε-> BLACK BOX -ε-> [C] -ε-> [D]-->
+                     *                                         + <---------ε---------- +
+                     */  
+                    break;
+                case '.':
+                    /*
+                     * DOT construction: --> BLACK BOX A -ε-> BLACK BOX B -->
+                     */
+                    break;
+                default:
+                    /*
+                     * TERMINAL construction -'character'-> 
+                     */
+                    if (parsedRegex.isTerminal)
+                    {
+                        AutomatonNodeCore entryState = new AutomatonNodeCore();
+                        AutomatonNodeCore exitState = new AutomatonNodeCore();
+                        AutomatonTransition transition = new AutomatonTransition(exitState);
+                        transition.acceptedSymbols.Add(parsedRegex.Op.Character);
+                        entryState.children.Add(transition);
+                        subset.AddLast(entryState);
+                        subset.AddLast(exitState);
+                    }
+                    else
+                        return null; //error
+                    break;
+            }
+            if(subset.Count == 0)
+                return null;
+            return subset;
+        }
+
+        //Build a binary tree of operations in the regex
         private static OperationTree buildOperatorTree(string exp)
         {
             OperationTree operations = new OperationTree();
@@ -103,8 +176,12 @@ namespace FormeleMethodenPracticum
 #endif
                 #endregion
             }
-
-            //The operator for this iteration
+            #region DEBUG
+#if DEBUG
+                        Console.INSTANCE.WriteLine("Parsing " + exp + " for highest precedence operator");
+#endif
+            #endregion
+                        //The operator for this iteration
             RegexOperator thisOp = new RegexOperator();
 
             if (exp.Length == 1)
@@ -166,7 +243,7 @@ namespace FormeleMethodenPracticum
                             }
                             break;
                         default:
-                            Console.INSTANCE.WriteLine("Unimplemented character in regex");
+                            Console.INSTANCE.WriteLine("ERR: Unimplemented character in regex");
                             return null;
                     }
                 }
@@ -212,14 +289,23 @@ namespace FormeleMethodenPracticum
          * Validify expression on the following criteria
          * 1) Valid characters
          * 2) Bracket consistency
+         * 3) Is there atleast one character
          */
         private static bool validifyExp(string exp)
         {
+            bool isValid = false;
             for (int i = 0; i < exp.Length; i++)
             {
                 if (!char.IsLetterOrDigit(exp[i]))
                     if (!validCharacters.Contains(exp[i]))
-                        return false;
+                    {
+                        #region DEBUG
+#if DEBUG
+                        Console.INSTANCE.WriteLine("ERR: regex contains invalid characters");
+#endif
+                        #endregion
+                        return isValid;             
+                    }
             }
 
             Stack<char> brackets = new Stack<char>();
@@ -233,23 +319,51 @@ namespace FormeleMethodenPracticum
                 {
                     if (brackets.Count == 0)
                     {
-                        return false;
+                        #region DEBUG
+#if DEBUG
+                        Console.INSTANCE.WriteLine("ERR: brackets mismatched");
+#endif
+                        #endregion
+                        return isValid;
                     }
                     char check = brackets.Pop();
                     if (((c == '}') && (check != '{')) || ((c == ')') && (check != '(')))
                     {
-                        return false;
+                        #region DEBUG
+#if DEBUG
+                        Console.INSTANCE.WriteLine("ERR: brackets mismatched");
+#endif
+                        #endregion
+                        return isValid;
                     }
                 }
             }
             if (brackets.Count != 0)
-                return false;
-
-            return true;
+            {
+                #region DEBUG
+#if DEBUG
+                Console.INSTANCE.WriteLine("ERR: brackets mismatched");
+#endif
+                #endregion
+                return isValid;
+            }
+            foreach (char c in exp)
+            {
+                isValid = char.IsLetterOrDigit(c) ? true : false;
+                if (isValid)
+                    break;
+            }
+            if(!isValid)
+                #region DEBUG
+#if DEBUG
+                Console.INSTANCE.WriteLine("ERR: No valid characters");
+#endif
+                #endregion
+            return isValid;
         }
 
         /**
-         * If we can assert it doesn't change the meaning
+         * If we can assert it doesn't change the meaning of the exp
          * Trim any whitespaces in the regex
          */
         private static void mutateExp(string exp, out string mutatedExp)
@@ -257,11 +371,30 @@ namespace FormeleMethodenPracticum
             mutatedExp = new string(exp.ToCharArray()
                 .Where(c => !Char.IsWhiteSpace(c))
                 .ToArray());
-            mutatedExp = addDotOperations(mutatedExp);
-            
+            addDotOperations(mutatedExp, out mutatedExp);        
             //That will be all
         }
 
+        /**
+         * Add implied dots for parsing ease
+         */
+        private static void addDotOperations(string exp, out string mutatedExp)
+        {
+            mutatedExp = exp;
+            for (int i = 0; i < exp.Length - 1; i++) //Length is already guarenteed larger than 1
+            {
+                if ((char.IsLetterOrDigit(exp[i]) || exp[i] == ')') && (char.IsLetterOrDigit(exp[i + 1]) || exp[i + 1] == '('))
+                {
+                    mutatedExp = exp.Substring(0, i + 1) + "." + exp.Substring(i + 1, exp.Length - (i + 1));
+                }
+            }
+
+            #region DEBUG
+#if DEBUG
+            Console.INSTANCE.WriteLine("Mutated to add dots: new exp = " + exp);
+#endif
+            #endregion
+        }
 
         private class OperationTree
         {
@@ -356,7 +489,6 @@ namespace FormeleMethodenPracticum
                 this.Character = '\0';
                 this.Index = 0;
             }
-
 
             public override string ToString()
             {

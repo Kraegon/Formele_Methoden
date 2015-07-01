@@ -329,10 +329,15 @@ namespace FormeleMethodenPracticum
                             }
                         }));
                 CommandsList.Add(new Command("Regex",
-                    "Fill in regex to perform operations on.",
+                    "Fill in regex to perform operations on.\nShows the NDFA of the expression in a table",
                     delegate(string parameters)
                     {
-                        MyRegex.ParseRegex(parameters);
+                        AutomatonCore regexNDFA = MyRegex.ParseRegex(parameters);
+                        if (regexNDFA != null)
+                        {
+                            AutomatonTable table = new AutomatonTable(regexNDFA);
+                            table.ShowDialog();
+                        }
                     }
                     ));
                 CommandsList.Add(new Command("Help",
