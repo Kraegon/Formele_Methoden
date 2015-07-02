@@ -22,7 +22,7 @@ namespace FormeleMethodenPracticum
      *  
      *  We will not use all of them
      */
-    public static class MyRegex
+    public static class MyRegex //An actual regex class already exists (System.Text.RegularExpressions)
     {
         private static readonly char[] validCharacters = {//'$', 
                                                           //'?',
@@ -38,27 +38,20 @@ namespace FormeleMethodenPracticum
         public static AutomatonCore ParseRegex(string exp)
         {
             OperationTree ops;
-            mutateExp(exp, out exp); //Remove whitespaces
+            mutateExp(exp, out exp); //Remove whitespaces & add dots
             if (!validifyExp(exp)) //Check for bracet consistency and invalid characters
             {
                 Console.INSTANCE.WriteLine("ERR: Invalid expression.");
                 return null;
             }
-            else
-            {
-                ops = buildOperatorTree(exp);
-                if (ops != null)
-                {
-                    Console.INSTANCE.WriteLine(ops.ToString());
-                    AutomatonCore ndfa = buildNDFA(ops);
-                    if (ndfa != null)
-                        return ndfa;
-                }
-                else
-                    Console.INSTANCE.WriteLine("ERR: Operator Tree could not be constructed.");
-
-            }
-            return null;
+            ops = buildOperatorTree(exp);
+            if (ops == null)
+                Console.INSTANCE.WriteLine("ERR: Operator Tree could not be constructed.");
+            Console.INSTANCE.WriteLine(ops.ToString()); //Dump
+            AutomatonCore ndfa = buildNDFA(ops);
+            if (ndfa == null)
+                Console.INSTANCE.WriteLine("Constructing NDFA failed");
+            return ndfa;
         }
 
         /**
@@ -67,28 +60,28 @@ namespace FormeleMethodenPracticum
         private static AutomatonCore buildNDFA(OperationTree parsedRegex)
         {
             //The (NDFA) core to hang our creation on.
-            AutomatonCore core = new AutomatonCore(false);
+            AutomatonCore core = new AutomatonCore(true);
             //The following variable is initialised incomplete
             LinkedList<AutomatonNodeCore> NDFA = thompsonSubset(parsedRegex);
             //We need to note the entry state and final state
             NDFA.First.Value.isBeginNode = true;
             NDFA.Last.Value.isEndNode = true;
             //And names to the states            
-            int nameNumber = 0;            
-            foreach(AutomatonNodeCore n in NDFA)
+            int nameNumber = 1;
+            foreach (AutomatonNodeCore n in NDFA)
             {
-                int tmp = nameNumber; //Temporary modifiable clone of nameNumber
-                string name = "";
-                while(tmp >= 0)
+                int tmp = nameNumber; //Modifiable clone
+                string name = string.Empty;
+                while (--tmp >= 0)
                 {
-                    name += (char)(65 + (tmp % 26));
-                    tmp -= 26;
+                    name = (char)('A' + tmp % 26) + name;
+                    tmp /= 26;
                 }
                 n.stateName = name;
                 nameNumber++;//next name
             }
             //Add to core
-            foreach(AutomatonNodeCore n in NDFA)
+            foreach (AutomatonNodeCore n in NDFA)
             {
                 core.nodes.Add(n);
             }
@@ -106,36 +99,85 @@ namespace FormeleMethodenPracticum
         private static LinkedList<AutomatonNodeCore> thompsonSubset(OperationTree parsedRegex)
         {
             LinkedList<AutomatonNodeCore> subset = new LinkedList<AutomatonNodeCore>();
+            //All constructs have an entry and exit state
+            AutomatonNodeCore entryState = new AutomatonNodeCore();
+            AutomatonNodeCore exitState = new AutomatonNodeCore();
             //Assume the characters are parsed correctly
-            switch(parsedRegex.Op.Character)
+            switch (parsedRegex.Op.Character)
             {
                 case '|':
                     /*                          BLACK BOX A 
                      *                       ε/             \ε
-                     * OR construction  -->[A]               [B]-->
+                     * OR construction  -->[A]               [B]--> 
                      *                       ε\             /ε
                      *                          BLACK BOX B 
                      */
-
-
+                    LinkedList<AutomatonNodeCore> orBlackBoxA;
+                    LinkedList<AutomatonNodeCore> orBlackBoxB;
+                    //An OR operation should always have a left branch and a right branch
+                    orBlackBoxA = thompsonSubset(parsedRegex.OpLeft);
+                    orBlackBoxB = thompsonSubset(parsedRegex.OpRight);
+                    AutomatonNodeCore orStateA = new AutomatonNodeCore(); //Divergence point
+                    AutomatonNodeCore orStateB = new AutomatonNodeCore(); //Convergence point
+                    AutomatonTransition epsilonA = new AutomatonTransition(orBlackBoxA.First.Value);
+                    AutomatonTransition epsilonB = new AutomatonTransition(orBlackBoxB.First.Value);
+                    AutomatonTransition epsilonC = new AutomatonTransition(orStateB);
+                    AutomatonTransition epsilonD = new AutomatonTransition(orStateB);
+                    //The parts are ready, put them together
+                    orStateA.children.Add(epsilonA);
+                    orStateA.children.Add(epsilonB);
+                    orBlackBoxA.Last.Value.children.Add(epsilonC);
+                    orBlackBoxB.Last.Value.children.Add(epsilonD);
+                    subset.AddFirst(orStateA);
+                    foreach (AutomatonNodeCore n in orBlackBoxA)
+                    {
+                        subset.AddLast(n);
+                    }
+                    foreach (AutomatonNodeCore n in orBlackBoxB)
+                    {
+                        subset.AddLast(n);
+                    }
+                    subset.AddLast(orStateB);
+                    break;
+                case '?':
+                    /*                              + -------------------ε------------------> +
+                    * ZERO-OR-ONE construction: -->[A] -ε-> [B] -ε-> BLACK BOX -ε-> [C] -ε-> [D]-->
+                    *                                       
+                    */
+                    LinkedList<AutomatonNodeCore> qmarkBlackBox;
                     break;
                 case '*':
                     /*                                + -------------------ε------------------> +
                      * ZERO-OR-MORE construction: -->[A] -ε-> [B] -ε-> BLACK BOX -ε-> [C] -ε-> [D]-->
                      *                                         + <---------ε---------- +
-                     */  
-
+                     */
+                    LinkedList<AutomatonNodeCore> asteriskBlackBox;
                     break;
                 case '+':
                     /*                                
                      * ONE-OR-MORE construction: -->[A] -ε-> [B] -ε-> BLACK BOX -ε-> [C] -ε-> [D]-->
-                     *                                         + <---------ε---------- +
-                     */  
+                     *                                        + <---------ε---------- +
+                     */
+                    LinkedList<AutomatonNodeCore> plusBlackBox;
+
+
                     break;
                 case '.':
                     /*
                      * DOT construction: --> BLACK BOX A -ε-> BLACK BOX B -->
                      */
+                    LinkedList<AutomatonNodeCore> dotBlackBoxA;
+                    LinkedList<AutomatonNodeCore> dotBlackBoxB;
+                    //A DOT operation should always have a left branch and a right branch
+                    dotBlackBoxA = thompsonSubset(parsedRegex.OpLeft);
+                    dotBlackBoxB = thompsonSubset(parsedRegex.OpRight);
+                    AutomatonTransition dotTransition = new AutomatonTransition(dotBlackBoxB.First.Value);
+                    dotBlackBoxA.Last.Value.children.Add(dotTransition);
+                    subset = dotBlackBoxA;
+                    foreach (AutomatonNodeCore n in dotBlackBoxB)
+                    {
+                        subset.AddLast(n);
+                    }
                     break;
                 default:
                     /*
@@ -143,11 +185,9 @@ namespace FormeleMethodenPracticum
                      */
                     if (parsedRegex.isTerminal)
                     {
-                        AutomatonNodeCore entryState = new AutomatonNodeCore();
-                        AutomatonNodeCore exitState = new AutomatonNodeCore();
-                        AutomatonTransition transition = new AutomatonTransition(exitState);
-                        transition.acceptedSymbols.Add(parsedRegex.Op.Character);
-                        entryState.children.Add(transition);
+                        AutomatonTransition termTransition = new AutomatonTransition(exitState);
+                        termTransition.acceptedSymbols.Add(parsedRegex.Op.Character);
+                        entryState.children.Add(termTransition);
                         subset.AddLast(entryState);
                         subset.AddLast(exitState);
                     }
@@ -155,7 +195,7 @@ namespace FormeleMethodenPracticum
                         return null; //error
                     break;
             }
-            if(subset.Count == 0)
+            if (subset.Count == 0)
                 return null;
             return subset;
         }
@@ -167,7 +207,7 @@ namespace FormeleMethodenPracticum
             if (exp.Length == 0)
                 return null;
             //If the entire exp is within brackets, obsolete
-            if (exp[0] == '(' && exp[exp.Length-1] == ')')
+            if (exp[0] == '(' && exp[exp.Length - 1] == ')')
             {
                 exp = exp.Substring(1, exp.Length - 2);
                 #region DEBUG
@@ -178,18 +218,18 @@ namespace FormeleMethodenPracticum
             }
             #region DEBUG
 #if DEBUG
-                        Console.INSTANCE.WriteLine("Parsing " + exp + " for highest precedence operator");
+            Console.INSTANCE.WriteLine("Parsing " + exp + " for highest precedence operator");
 #endif
             #endregion
-                        //The operator for this iteration
+            //The operator for this iteration
             RegexOperator thisOp = new RegexOperator();
 
             if (exp.Length == 1)
             {
-                thisOp = new RegexOperator(RegexOperator.OpType.TERMINAL, exp[0], 0);            
+                thisOp = new RegexOperator(RegexOperator.OpType.TERMINAL, exp[0], 0);
             }
 
-           
+
             //loop variables
             int bracketDepth = 0;
             Stack<char> brackets = new Stack<char>();
@@ -247,7 +287,7 @@ namespace FormeleMethodenPracticum
                             return null;
                     }
                 }
-                else if(char.IsLetterOrDigit(exp[i]))//Language character
+                else if (char.IsLetterOrDigit(exp[i]))//Language character
                 {
                     if (bracketDepth == 0 && thisOp.Type < RegexOperator.OpType.TERMINAL)
                     {
@@ -304,7 +344,7 @@ namespace FormeleMethodenPracticum
                         Console.INSTANCE.WriteLine("ERR: regex contains invalid characters");
 #endif
                         #endregion
-                        return isValid;             
+                        return isValid;
                     }
             }
 
@@ -353,7 +393,7 @@ namespace FormeleMethodenPracticum
                 if (isValid)
                     break;
             }
-            if(!isValid)
+            if (!isValid)
                 #region DEBUG
 #if DEBUG
                 Console.INSTANCE.WriteLine("ERR: No valid characters");
@@ -371,7 +411,7 @@ namespace FormeleMethodenPracticum
             mutatedExp = new string(exp.ToCharArray()
                 .Where(c => !Char.IsWhiteSpace(c))
                 .ToArray());
-            addDotOperations(mutatedExp, out mutatedExp);        
+            addDotOperations(mutatedExp, out mutatedExp);
             //That will be all
         }
 
@@ -381,11 +421,12 @@ namespace FormeleMethodenPracticum
         private static void addDotOperations(string exp, out string mutatedExp)
         {
             mutatedExp = exp;
-            for (int i = 0; i < exp.Length - 1; i++) //Length is already guarenteed larger than 1
+            for (int i = 0; i < mutatedExp.Length - 1; i++) //Length is already guarenteed larger than 1
             {
-                if ((char.IsLetterOrDigit(exp[i]) || exp[i] == ')') && (char.IsLetterOrDigit(exp[i + 1]) || exp[i + 1] == '('))
+                if ((char.IsLetterOrDigit(mutatedExp[i]) || mutatedExp[i] == ')')
+                    && (char.IsLetterOrDigit(mutatedExp[i + 1]) || mutatedExp[i + 1] == '('))
                 {
-                    mutatedExp = exp.Substring(0, i + 1) + "." + exp.Substring(i + 1, exp.Length - (i + 1));
+                    mutatedExp = mutatedExp.Substring(0, i + 1) + "." + mutatedExp.Substring(i + 1, mutatedExp.Length - (i + 1));
                 }
             }
 
@@ -438,12 +479,12 @@ namespace FormeleMethodenPracticum
             public override string ToString()
             {
                 string prefix = "";
-                string retval = "+"+ prefix + Op + "\n";
+                string retval = "+" + prefix + Op + "\n";
                 if (OpLeft != null)
                     retval += OpLeft.ToString(prefix + "   |");
                 if (OpRight != null)
                     retval += OpRight.ToString(prefix + "   |");
-                    
+
                 return retval;
             }
 
