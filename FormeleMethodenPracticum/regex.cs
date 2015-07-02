@@ -8,7 +8,8 @@ namespace FormeleMethodenPracticum
 {
     /**
      * Let's do regex!
-     * The following characters could make up the regex language, excluding terminals
+     * The following characters could make up the regex language, excluding terminals...
+     * 
      *  '$'         := The empty string character
      *  '|'         := The OR operator
      *  '.'         := The DOT operator
@@ -18,14 +19,14 @@ namespace FormeleMethodenPracticum
      *  '-'         := The range operator
      *  '{' & '}'   := The interval brackets
      *  '(' & ')'   := Your run-of-the-mill bracketty brackets.
-     *  'ε'         := Epsilon (if needed/supported)
+     *  'ε'         := Epsilon
      *  
-     *  We will not use all of them
+     *  ...but we don't use all of them 
      */
     public static class MyRegex //An actual regex class already exists (System.Text.RegularExpressions)
     {
         private static readonly char[] validCharacters = {//'$', 
-                                                          //'?',
+                                                          '?',
                                                           '|',
                                                           '*',
                                                           '+',
@@ -99,9 +100,6 @@ namespace FormeleMethodenPracticum
         private static LinkedList<AutomatonNodeCore> thompsonSubset(OperationTree parsedRegex)
         {
             LinkedList<AutomatonNodeCore> subset = new LinkedList<AutomatonNodeCore>();
-            //All constructs have an entry and exit state
-            AutomatonNodeCore entryState = new AutomatonNodeCore();
-            AutomatonNodeCore exitState = new AutomatonNodeCore();
             //Assume the characters are parsed correctly
             switch (parsedRegex.Op.Character)
             {
@@ -112,62 +110,87 @@ namespace FormeleMethodenPracticum
                      *                       ε\             /ε
                      *                          BLACK BOX B 
                      */
-                    LinkedList<AutomatonNodeCore> orBlackBoxA;
-                    LinkedList<AutomatonNodeCore> orBlackBoxB;
+                    #region OR
+                    LinkedList<AutomatonNodeCore> orBlackBoxA, orBlackBoxB;
                     //An OR operation should always have a left branch and a right branch
                     orBlackBoxA = thompsonSubset(parsedRegex.OpLeft);
                     orBlackBoxB = thompsonSubset(parsedRegex.OpRight);
-                    AutomatonNodeCore orStateA = new AutomatonNodeCore(); //Divergence point
-                    AutomatonNodeCore orStateB = new AutomatonNodeCore(); //Convergence point
-                    AutomatonTransition epsilonA = new AutomatonTransition(orBlackBoxA.First.Value);
-                    AutomatonTransition epsilonB = new AutomatonTransition(orBlackBoxB.First.Value);
-                    AutomatonTransition epsilonC = new AutomatonTransition(orStateB);
-                    AutomatonTransition epsilonD = new AutomatonTransition(orStateB);
+                    AutomatonNodeCore orStateA = new AutomatonNodeCore(),//Divergence point
+                                      orStateB = new AutomatonNodeCore();//Convergence point
+                    AutomatonTransition orEpsilonA = new AutomatonTransition(orBlackBoxA.First.Value), 
+                                        orEpsilonB = new AutomatonTransition(orBlackBoxB.First.Value);
+                    AutomatonTransition orEpsilonC = new AutomatonTransition(orStateB), 
+                                        orEpsilonD = new AutomatonTransition(orStateB);
                     //The parts are ready, put them together
-                    orStateA.children.Add(epsilonA);
-                    orStateA.children.Add(epsilonB);
-                    orBlackBoxA.Last.Value.children.Add(epsilonC);
-                    orBlackBoxB.Last.Value.children.Add(epsilonD);
+                    orStateA.children.Add(orEpsilonA);
+                    orStateA.children.Add(orEpsilonB);
+                    orBlackBoxA.Last.Value.children.Add(orEpsilonC);
+                    orBlackBoxB.Last.Value.children.Add(orEpsilonD);
                     subset.AddFirst(orStateA);
                     foreach (AutomatonNodeCore n in orBlackBoxA)
-                    {
                         subset.AddLast(n);
-                    }
                     foreach (AutomatonNodeCore n in orBlackBoxB)
-                    {
                         subset.AddLast(n);
-                    }
                     subset.AddLast(orStateB);
+#endregion
                     break;
                 case '?':
-                    /*                              + -------------------ε------------------> +
-                    * ZERO-OR-ONE construction: -->[A] -ε-> [B] -ε-> BLACK BOX -ε-> [C] -ε-> [D]-->
-                    *                                       
-                    */
-                    LinkedList<AutomatonNodeCore> qmarkBlackBox;
-                    break;
                 case '*':
-                    /*                                + -------------------ε------------------> +
-                     * ZERO-OR-MORE construction: -->[A] -ε-> [B] -ε-> BLACK BOX -ε-> [C] -ε-> [D]-->
-                     *                                         + <---------ε---------- +
-                     */
-                    LinkedList<AutomatonNodeCore> asteriskBlackBox;
-                    break;
                 case '+':
-                    /*                                
-                     * ONE-OR-MORE construction: -->[A] -ε-> [B] -ε-> BLACK BOX -ε-> [C] -ε-> [D]-->
-                     *                                        + <---------ε---------- +
-                     */
-                    LinkedList<AutomatonNodeCore> plusBlackBox;
-
-
+                    /*                               + -------------------ε------------------> +
+                    * ZERO-OR-ONE construction:  -->[A] -ε-> [B] -ε-> BLACK BOX -ε-> [C] -ε-> [D]-->
+                    *                                       
+                    *                                + -------------------ε------------------> +
+                    * ZERO-OR-MORE construction: -->[A] -ε-> [B] -ε-> BLACK BOX -ε-> [C] -ε-> [D]-->   Notice the similarities?
+                    *                                         + <---------ε---------- +               
+                    *                                
+                    * ONE-OR-MORE construction:  -->[A] -ε-> [B] -ε-> BLACK BOX -ε-> [C] -ε-> [D]-->
+                    *                                         + <---------ε---------- +
+                    */
+                    #region ZERO-OR-MORE+ONE-OR-MORE+ZERO-OR-ONE
+                    LinkedList<AutomatonNodeCore> thisBlackBox;
+                    thisBlackBox = thompsonSubset(parsedRegex.OpLeft); //a #-OR-# op contains ONLY a left branch
+                    #region DEBUG
+#if DEBUG
+                    if (parsedRegex.OpRight != null)
+                    {
+                        Console.INSTANCE.WriteLine("WARN: Right hand side of ZERO-OR-MORE operation present");
+                        Console.INSTANCE.WriteLine("Duly noted, thoroughly ignored.");
+                    }
+#endif
+                    #endregion
+                    AutomatonNodeCore thisStateA = new AutomatonNodeCore(),
+                                      thisStateB = new AutomatonNodeCore(),
+                                      thisStateC = new AutomatonNodeCore(),
+                                      thisStateD = new AutomatonNodeCore();
+                    AutomatonTransition thisEpsilonA = new AutomatonTransition(thisStateB),
+                                        specialEpsilonB = new AutomatonTransition(thisStateD),//Used in ? and *
+                                        thisEpsilonC = new AutomatonTransition(thisBlackBox.First.Value),
+                                        thisEpsilonD = new AutomatonTransition(thisStateC),
+                                        thisEpsilonE = new AutomatonTransition(thisStateD),
+                                        specialEpsilonF = new AutomatonTransition(thisStateB); //Used in + and *
+                    thisStateA.children.Add(thisEpsilonA);
+                    if(parsedRegex.Op.Character == '*' || parsedRegex.Op.Character == '?')
+                        thisStateA.children.Add(specialEpsilonB);
+                    thisStateB.children.Add(thisEpsilonC);
+                    thisBlackBox.Last.Value.children.Add(thisEpsilonD);
+                    thisStateC.children.Add(thisEpsilonE);
+                    if (parsedRegex.Op.Character == '*' || parsedRegex.Op.Character == '+')                    
+                        thisStateC.children.Add(specialEpsilonF);
+                    subset.AddLast(thisStateA);
+                    subset.AddLast(thisStateB);
+                    foreach (AutomatonNodeCore n in thisBlackBox)
+                        subset.AddLast(n);
+                    subset.AddLast(thisStateC);
+                    subset.AddLast(thisStateD);
+#endregion
                     break;
                 case '.':
                     /*
                      * DOT construction: --> BLACK BOX A -ε-> BLACK BOX B -->
                      */
-                    LinkedList<AutomatonNodeCore> dotBlackBoxA;
-                    LinkedList<AutomatonNodeCore> dotBlackBoxB;
+                    #region DOT
+                    LinkedList<AutomatonNodeCore> dotBlackBoxA, dotBlackBoxB;
                     //A DOT operation should always have a left branch and a right branch
                     dotBlackBoxA = thompsonSubset(parsedRegex.OpLeft);
                     dotBlackBoxB = thompsonSubset(parsedRegex.OpRight);
@@ -175,24 +198,27 @@ namespace FormeleMethodenPracticum
                     dotBlackBoxA.Last.Value.children.Add(dotTransition);
                     subset = dotBlackBoxA;
                     foreach (AutomatonNodeCore n in dotBlackBoxB)
-                    {
                         subset.AddLast(n);
-                    }
+#endregion
                     break;
                 default:
                     /*
                      * TERMINAL construction -'character'-> 
                      */
+                    #region TERM
                     if (parsedRegex.isTerminal)
                     {
-                        AutomatonTransition termTransition = new AutomatonTransition(exitState);
+                        AutomatonNodeCore termStateA = new AutomatonNodeCore();
+                        AutomatonNodeCore termStateB = new AutomatonNodeCore();
+                        AutomatonTransition termTransition = new AutomatonTransition(termStateB);
                         termTransition.acceptedSymbols.Add(parsedRegex.Op.Character);
-                        entryState.children.Add(termTransition);
-                        subset.AddLast(entryState);
-                        subset.AddLast(exitState);
+                        termStateA.children.Add(termTransition);
+                        subset.AddLast(termStateA);
+                        subset.AddLast(termStateB);
                     }
                     else
-                        return null; //error
+                        return null; //Terminal that's not a terminal
+                    #endregion
                     break;
             }
             if (subset.Count == 0)
@@ -326,16 +352,50 @@ namespace FormeleMethodenPracticum
         }
 
         /**
-         * Validify expression on the following criteria
+         * Validify expression on the following criteria (in no specific order)
          * 1) Valid characters
          * 2) Bracket consistency
          * 3) Is there atleast one character
+         * 4) Does the expression start with a character?
+         * 5) Are there any constructions like "a**" or "b+*+"?
          */
         private static bool validifyExp(string exp)
         {
             bool isValid = false;
+
+            //Disallow starting with an operator
+            if (exp[0] != '(' && !char.IsLetterOrDigit(exp[0]))
+            {
+                #region DEBUG
+#if DEBUG
+                Console.INSTANCE.WriteLine("ERR: Expression does not start with a terminal");
+#endif
+                #endregion
+                return isValid;
+            }
             for (int i = 0; i < exp.Length; i++)
             {
+                //Disallow immediate chaining of *,+ or ?
+                if (i + 1 < exp.Length) //It IS allowed to be the last character
+                {
+                    if ((exp[i] == '*' ||
+                       exp[i] == '+' ||
+                       exp[i] == '?')
+                       &&
+                       (exp[i + 1] == '*' ||
+                       exp[i + 1] == '+' ||
+                       exp[i + 1] == '?'))
+                    {
+                        #region DEBUG
+#if DEBUG
+                        Console.INSTANCE.WriteLine("ERR: Chained #-or-# operators");
+#endif
+                        #endregion
+                        return isValid;
+                    }
+                }
+
+                //Disallow unknown characters
                 if (!char.IsLetterOrDigit(exp[i]))
                     if (!validCharacters.Contains(exp[i]))
                     {
@@ -344,10 +404,10 @@ namespace FormeleMethodenPracticum
                         Console.INSTANCE.WriteLine("ERR: regex contains invalid characters");
 #endif
                         #endregion
-                        return isValid;
+                        return isValid; 
                     }
             }
-
+            //Disallow mismatched brackets
             Stack<char> brackets = new Stack<char>();
             foreach (char c in exp)
             {
@@ -387,6 +447,8 @@ namespace FormeleMethodenPracticum
                 #endregion
                 return isValid;
             }
+
+            //Disallow statement without terminals
             foreach (char c in exp)
             {
                 isValid = char.IsLetterOrDigit(c) ? true : false;
@@ -396,15 +458,15 @@ namespace FormeleMethodenPracticum
             if (!isValid)
                 #region DEBUG
 #if DEBUG
-                Console.INSTANCE.WriteLine("ERR: No valid characters");
+                Console.INSTANCE.WriteLine("ERR: No terminals");
 #endif
                 #endregion
             return isValid;
         }
 
         /**
-         * If we can assert it doesn't change the meaning of the exp
-         * Trim any whitespaces in the regex
+         * Let's assert we can trim any whitespaces in the regex
+         * without impacting the expression.
          */
         private static void mutateExp(string exp, out string mutatedExp)
         {
@@ -423,7 +485,11 @@ namespace FormeleMethodenPracticum
             mutatedExp = exp;
             for (int i = 0; i < mutatedExp.Length - 1; i++) //Length is already guarenteed larger than 1
             {
-                if ((char.IsLetterOrDigit(mutatedExp[i]) || mutatedExp[i] == ')')
+                if ((char.IsLetterOrDigit(mutatedExp[i]) || 
+                    mutatedExp[i] == ')' || 
+                    mutatedExp[i] == '*' ||
+                    mutatedExp[i] == '+' ||
+                    mutatedExp[i] == '?')
                     && (char.IsLetterOrDigit(mutatedExp[i + 1]) || mutatedExp[i + 1] == '('))
                 {
                     mutatedExp = mutatedExp.Substring(0, i + 1) + "." + mutatedExp.Substring(i + 1, mutatedExp.Length - (i + 1));
@@ -505,11 +571,11 @@ namespace FormeleMethodenPracticum
             public enum OpType //And their precedence
             {
                 OR = 10,              // |, actually the only truly precedent operator
-                ZERO_OR_MORE = 9,     // *
-                ONE_OR_MORE = 9,      // +
-                ZERO_OR_ONE = 9,      // ?
+                ZERO_OR_MORE = 8,     // *
+                ONE_OR_MORE = 8,      // +
+                ZERO_OR_ONE = 8,      // ?
                 DOT = 9,              // Implied or .
-                TERMINAL = 8,         // Letter of defined alphabet (a,b .. etc)
+                TERMINAL = 7,         // Letter of defined alphabet (a,b .. etc)
                 NOT_AN_OPERATOR = 0   // null replacement
             }
 
