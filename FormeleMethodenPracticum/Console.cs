@@ -27,7 +27,7 @@ namespace FormeleMethodenPracticum
                 return _instance;
             }
         }
-
+        
         public static int amountOfSaveSlots = 10;
         public int currentSaveSlot = 0;
         public object[] processedResults = new object[amountOfSaveSlots];
@@ -337,6 +337,7 @@ namespace FormeleMethodenPracticum
                         {
                             AutomatonTable table = new AutomatonTable(regexNDFA);
                             table.ShowDialog();
+                            Console.INSTANCE.processedResults[Console.INSTANCE.currentSaveSlot] = regexNDFA; //Save our NDFA
                         }
                     }
                     ));
