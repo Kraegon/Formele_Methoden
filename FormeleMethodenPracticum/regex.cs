@@ -118,13 +118,14 @@ namespace FormeleMethodenPracticum
                     AutomatonNodeCore orStateA = new AutomatonNodeCore(),//Divergence point
                                       orStateB = new AutomatonNodeCore();//Convergence point
                     AutomatonTransition orEpsilonA = new AutomatonTransition(orBlackBoxA.First.Value), 
-                                        orEpsilonB = new AutomatonTransition(orBlackBoxB.First.Value);
-                    AutomatonTransition orEpsilonC = new AutomatonTransition(orStateB), 
+                                        orEpsilonB = new AutomatonTransition(orBlackBoxB.First.Value),
+                                        orEpsilonC = new AutomatonTransition(orStateB), 
                                         orEpsilonD = new AutomatonTransition(orStateB);
                     //The parts are ready, put them together
                     orStateA.children.Add(orEpsilonA);
                     orStateA.children.Add(orEpsilonB);
                     orBlackBoxA.Last.Value.children.Add(orEpsilonC);
+
                     orBlackBoxB.Last.Value.children.Add(orEpsilonD);
                     subset.AddFirst(orStateA);
                     foreach (AutomatonNodeCore n in orBlackBoxA)
@@ -170,12 +171,14 @@ namespace FormeleMethodenPracticum
                                         thisEpsilonE = new AutomatonTransition(thisStateD),
                                         specialEpsilonF = new AutomatonTransition(thisStateB); //Used in + and *
                     thisStateA.children.Add(thisEpsilonA);
-                    if(parsedRegex.Op.Character == '*' || parsedRegex.Op.Character == '?')
+                    if(parsedRegex.Op.Character == '*' 
+                        || parsedRegex.Op.Character == '?')//This state doesn't exist in ONE-OR-MORE
                         thisStateA.children.Add(specialEpsilonB);
                     thisStateB.children.Add(thisEpsilonC);
                     thisBlackBox.Last.Value.children.Add(thisEpsilonD);
                     thisStateC.children.Add(thisEpsilonE);
-                    if (parsedRegex.Op.Character == '*' || parsedRegex.Op.Character == '+')                    
+                    if (parsedRegex.Op.Character == '*' 
+                        || parsedRegex.Op.Character == '+')//This state doesn't exist in ZERO-OR-ONE                    
                         thisStateC.children.Add(specialEpsilonF);
                     subset.AddLast(thisStateA);
                     subset.AddLast(thisStateB);
