@@ -54,16 +54,16 @@
             this.outputTextBox.ReadOnly = true;
             this.outputTextBox.Size = new System.Drawing.Size(315, 396);
             this.outputTextBox.TabIndex = 0;
-            this.outputTextBox.Text = "";
+            this.outputTextBox.Text = "Type \'help\' for a list of commands";
             // 
-            // Window
+            // Console
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(340, 464);
             this.Controls.Add(this.inputTextBox);
             this.Controls.Add(this.outputTextBox);
-            this.Name = "Window";
+            this.Name = "Console";
             this.Text = "Window";
             this.Load += new System.EventHandler(this.Window_Load);
             this.ResumeLayout(false);

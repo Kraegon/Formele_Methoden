@@ -351,6 +351,17 @@ namespace FormeleMethodenPracticum
                                 Console.INSTANCE.WriteLine("");
                             }
                         }));
+                CommandsList.Add(new Command("About",
+                        "About info",
+                        delegate(string parameters)
+                        {
+                            Console.INSTANCE.WriteLine("This application was made by:");
+                            Console.INSTANCE.WriteLine("Patrick Bakx, ");
+                            Console.INSTANCE.WriteLine("Thom Trignol, &");
+                            Console.INSTANCE.WriteLine("Julian West");
+                            Console.INSTANCE.WriteLine("According to the criteria for the school subject");
+                            Console.INSTANCE.WriteLine("Formal Language Theory");                         
+                        }));
                 #endregion
             }
         }
